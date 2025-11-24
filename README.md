@@ -1,348 +1,257 @@
 # go-notes
 
-A modern, collaborative note-taking application with real-time editing capabilities. Built with Go, React, and Hocuspocus for seamless multi-user collaboration.
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Go Version](https://img.shields.io/badge/go-1.25-blue.svg)
-![Node Version](https://img.shields.io/badge/node-20-green.svg)
-
+A modern collaborative note-taking application with real-time editing. Multiple users can edit the same note simultaneously with automatic conflict resolution.
 
 ## ✨ Features
 
-### 📝 Rich Text Editing
-- **Full Quill editor** with extensive formatting options
-- Headings, lists, code blocks, blockquotes
-- Text colours and background highlights
-- Links, images, videos, and LaTeX formulas
-- Inline code and code blocks with syntax highlighting
-
-### 🤝 Real-Time Collaboration
-- **Multi-user editing** - Multiple people can edit the same note simultaneously
-- **Cursor tracking** - See where others are typing with colour-coded cursors
-- **Per-user undo/redo** - Your undo history is isolated from others
-- **CRDT-based** - Automatic conflict resolution with Y.js
+- **Real-time collaboration** - Edit notes together with live cursor tracking
+- **Rich text editor** - Full formatting, code blocks, lists, images, LaTeX
+- **Workspaces & folders** - Organize notes with unlimited nesting
+- **Tags & search** - Quick note discovery across workspaces
+- **User management** - Multi-user with workspace sharing
 - **Offline support** - Edit offline, auto-syncs when reconnected
+- **Trash system** - Soft-delete with restore capability
 
-### 🗂️ Organization
-- **Workspaces** - Separate spaces for different projects or teams
-- **Unlimited folder nesting** - Organize notes hierarchically
-- **Tags** - Cross-workspace categorization with tag navigation
-- **Search** - Fast search across note titles and tags
-- **Colour-coded notes** - 9 post-it style colours for visual organization
-
-### 👥 User & Access Management
-- **Multi-user support** - Admin and regular user roles
-- **Workspace sharing** - Invite members to collaborate
-- **Ownership transfer** - Transfer workspace ownership to other members
-- **Self-service** - Users can manage their own accounts
-
-### 🗑️ Trash & Safety
-- **Soft-delete** - Deleted notes go to trash first
-- **Restore capability** - Recover accidentally deleted notes
-- **Auto-cleanup** - Configurable auto-delete after retention period
-- **Empty trash** - Permanently delete when ready
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Docker & Docker Compose
-- Git
+## Quick Start
 
 ### Installation
 
-1. **Clone the repository**
+1. **Create directory and download files**
 ```bash
-   git clone https://github.com/TheFozid/go-notes.git
-   cd go-notes
+   mkdir go-notes && cd go-notes
+   wget https://raw.githubusercontent.com/TheFozid/go-notes/main/docker-compose.yml
+   wget https://raw.githubusercontent.com/TheFozid/go-notes/main/.env.example -O .env
 ```
 
-2. **Configure environment** (optional)
+2. **Configure** (edit .env)
 ```bash
-   cp deploy/.env.example deploy/.env
-   # Edit deploy/.env if you want to change defaults
+   nano .env
 ```
+   
+   **Required changes:**
+   - Change `JWT_SECRET` to a random string
+   - Change `DB_PASSWORD` to a secure password
+   - Optionally change `API_BASE_PATH` (default: `/go-notes`)
 
-3. **Start the application**
+3. **Start**
 ```bash
-   cd deploy
-   docker compose up --build
+   docker compose pull
+   docker compose up -d
 ```
 
-4. **Access the application**
-   - Open your browser to: http://localhost:8060/test/
-   - Create your admin account on first run
+4. **Access**
+   - Open: `http://localhost:8060/go-notes/`
+   - Create your admin account
 
-### Default Configuration
-- **Port:** 8060
-- **Base Path:** /test
-- **Database:** PostgreSQL 15
-- **Auto-trash retention:** 30 days
-
-## 🏗️ Architecture
-
-### Tech Stack
-
-**Backend:**
-- Go 1.25 with Gin framework
-- PostgreSQL 15 for metadata storage
-- JWT authentication with database validation
-
-**Real-Time Layer:**
-- Hocuspocus 2.15.3 (Node.js WebSocket server)
-- Y.js CRDT for conflict-free collaborative editing
-- PostgreSQL persistence for Yjs documents
-
-**Frontend:**
-- React 18 with TypeScript
-- Vite build system
-- Tailwind CSS for styling
-- Zustand for state management
-- Quill for rich text editing
-
-### System Architecture
-```
-┌─────────────────────────────────────────────────────────┐
-│                        Frontend                         │
-│              (React + Quill + Hocuspocus)               │
-└────────────────────┬────────────────────────────────────┘
-                     │ HTTP/WebSocket
-┌────────────────────┴────────────────────────────────────┐
-│                    Backend (Go + Gin)                   │
-│  - REST API (metadata, auth, workspaces)                │
-│  - JWT validation                                       │
-│  - WebSocket proxy (/yjs → yjs:1234)                    │
-└─────────────┬───────────────────────┬───────────────────┘
-              │                       │
-    ┌─────────┴─────────┐   ┌────────┴──────────┐
-    │   PostgreSQL      │   │   Hocuspocus      │
-    │  - Metadata       │   │  - Content sync   │
-    │  - User/workspace │   │  - CRDT (Y.js)    │
-    │  - Yjs documents  │   │  - Collaboration  │
-    └───────────────────┘   └───────────────────┘
-```
-
-### Three-Service Deployment
-1. **db** - PostgreSQL database
-2. **backend** - Go API server (serves frontend + proxies WebSocket)
-3. **yjs** - Hocuspocus collaboration server
-
-All services orchestrated via Docker Compose with a single external port.
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `deploy/.env` file:
+### Update
 ```bash
-# Backend
-PORT=8060
-API_BASE_PATH=/test
-JWT_SECRET=your-secret-key-change-in-production
-
-# Database
-DB_HOST=db
-DB_PORT=5432
-DB_USER=notes
-DB_PASSWORD=notespass
-DB_NAME=notesdb
-
-# Hocuspocus
-YJS_WS_PORT=1234
-YJS_HTTP_PORT=1235
-
-# Features
-TRASH_AUTO_DELETE_DAYS=30
+cd go-notes
+docker compose pull
+docker compose up -d
 ```
 
-### Changing the Base Path
+## 🌐 Reverse Proxy (Nginx)
 
-If deploying behind a reverse proxy at a different path:
-
-1. Update `API_BASE_PATH` in `.env`
-2. Rebuild: `docker compose up --build`
-
-Example: For `/notes/` instead of `/test/`:
-```bash
-API_BASE_PATH=/notes
-```
-
-## 📚 Documentation
-
-Comprehensive documentation available in the `docs/` directory:
-
-- **[architecture.md](docs/architecture.md)** - System design and technical details
-- **[requirements.md](docs/requirements.md)** - Functional and non-functional requirements
-- **[feature-checklist.md](docs/feature-checklist.md)** - Feature implementation status
-- **[roadmap.md](docs/roadmap.md)** - Future development plans
-- **[tracking.md](docs/tracking.md)** - Development history and session log
-
-## 🛠️ Development
-
-### Project Structure
-```
-go-notes/
-├── backend/              # Go backend
-│   ├── cmd/             # Main application
-│   ├── internal/        # Internal packages
-│   │   ├── auth/        # JWT authentication
-│   │   ├── db/          # Database layer
-│   │   └── migrations/  # SQL migrations
-│   └── Dockerfile
-├── frontend/            # React frontend
-│   ├── src/
-│   │   ├── api/        # API client
-│   │   ├── components/ # React components
-│   │   ├── pages/      # Page components
-│   │   ├── store/      # Zustand state
-│   │   └── utils/      # Utilities
-│   └── package.json
-├── yjs-server/          # Hocuspocus server
-│   ├── server.js
-│   ├── auth.js
-│   ├── createDefaultContent.js
-│   └── package.json
-├── deploy/              # Docker Compose
-│   ├── docker-compose.yml
-│   └── .env
-└── docs/                # Documentation
-```
-
-### Local Development
-
-**Backend:**
-```bash
-cd backend
-go run cmd/main.go
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-**Yjs Server:**
-```bash
-cd yjs-server
-npm install
-node server.js
-```
-
-### Building
-
-**Frontend only:**
-```bash
-cd frontend
-npm run build
-# Output goes to backend/static/
-```
-
-**Full rebuild:**
-```bash
-cd deploy
-docker compose down
-docker compose up --build
-```
-
-**Clean rebuild (fresh database):**
-```bash
-cd deploy
-docker compose down
-docker volume rm deploy_db_data
-docker compose up --build
-```
-
-## 🧪 Testing
-
-### Manual Testing Checklist
-
-- [ ] User creation and authentication
-- [ ] Workspace/folder/note CRUD operations
-- [ ] Real-time collaboration (2+ users)
-- [ ] Cursor tracking and awareness
-- [ ] Per-user undo/redo
-- [ ] Tag management and navigation
-- [ ] Search functionality
-- [ ] Trash and restore
-- [ ] Offline editing and sync
-
-### Automated Tests
-
-Integration tests need updating for Hocuspocus architecture:
-```bash
-cd backend
-go test -v ./...
-```
-
-## 🚢 Deployment
-
-### Production Checklist
-
-Before deploying to production:
-
-- [ ] Change `JWT_SECRET` to a strong random value
-- [ ] Use strong database credentials
-- [ ] Set up SSL/TLS termination (reverse proxy)
-- [ ] Configure CORS appropriately
-- [ ] Enable rate limiting
-- [ ] Set up database backups
-- [ ] Configure log aggregation
-- [ ] Set up monitoring and health checks
-
-### Reverse Proxy Example (Nginx)
+To access go-notes via a domain with SSL:
 ```nginx
-location /notes/ {
-    proxy_pass http://localhost:8060/test/;
+location /go-notes/ {
+    proxy_pass http://192.168.0.4:8060/go-notes/;
+    
+    # WebSocket support (required for real-time collaboration)
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
+    
+    # Standard proxy headers
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Timeouts for WebSocket connections
+    proxy_connect_timeout 7d;
+    proxy_send_timeout 7d;
+    proxy_read_timeout 7d;
+    
+    # Disable buffering for real-time updates
+    proxy_buffering off;
 }
 ```
 
-## 🤝 Contributing
+**Apply the config:**
+```bash
+sudo nano /etc/nginx/sites-available/default
+# Add location block inside server block
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Replace `192.168.0.4:8060` with your actual server IP/hostname and port.
 
-### Development Workflow
+## ⚙️ Configuration
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Environment Variables (.env)
+```bash
+# Server Configuration
+PORT=8060                    # Internal port
+API_BASE_PATH=/go-notes      # URL subpath
+
+# Security (CHANGE THESE!)
+JWT_SECRET=change-me-in-production
+DB_PASSWORD=notespass
+
+# Database
+DB_USER=notes
+DB_NAME=notesdb
+
+# Features
+TRASH_AUTO_DELETE_DAYS=30    # Auto-delete trashed notes after X days
+```
+
+### Changing the Base Path
+
+To use a different URL path (e.g., `/notes` instead of `/go-notes`):
+
+1. Edit `.env`:
+```bash
+   API_BASE_PATH=/notes
+```
+
+2. Restart:
+```bash
+   docker compose down
+   docker compose up -d
+```
+
+3. Update your nginx `location` block to match:
+```nginx
+   location /notes/ {
+       proxy_pass http://192.168.0.4:8060/notes/;
+       ...
+```
+
+## 🛠️ Management
+
+### View logs
+```bash
+docker compose logs -f
+```
+
+### Stop application
+```bash
+docker compose down
+```
+
+### Restart application
+```bash
+docker compose restart
+```
+
+### Backup database
+```bash
+docker compose exec db pg_dump -U notes notesdb > backup.sql
+```
+
+### Restore database
+```bash
+cat backup.sql | docker compose exec -T db psql -U notes notesdb
+```
+
+### Complete reset (deletes all data)
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+## 🏗️ Architecture
+
+**Three-service deployment:**
+- **PostgreSQL** - Stores metadata and document content
+- **Go Backend** - REST API, authentication, WebSocket proxy
+- **Hocuspocus (Node.js)** - Real-time collaboration server
+
+All services run in Docker containers and communicate via internal network.
+
+## 🔒 Security Checklist
+
+Before production deployment:
+
+- [ ] Change `JWT_SECRET` to a strong random value
+- [ ] Use strong `DB_PASSWORD`
+- [ ] Set up SSL/TLS (Let's Encrypt recommended)
+- [ ] Configure firewall (only expose 80/443)
+- [ ] Set up regular database backups
+- [ ] Keep Docker images updated
+
+## 📊 System Requirements
+
+**Minimum:**
+- 1 CPU core
+- 512MB RAM
+- 2GB disk space
+- Docker & Docker Compose
+
+**Recommended:**
+- 2 CPU cores
+- 2GB RAM
+- 10GB disk space
+
+## Troubleshooting
+
+### Application won't start
+```bash
+# Check logs
+docker compose logs
+
+# Verify containers are running
+docker compose ps
+```
+
+### Can't access via browser
+- Check firewall allows port 8060
+- Verify `API_BASE_PATH` in .env matches URL
+- Check nginx config if using reverse proxy
+
+### Real-time collaboration not working
+- Ensure WebSocket support in nginx config
+- Check browser console for WebSocket errors
+- Verify no firewall blocking WebSocket upgrades
+
+### Database errors
+```bash
+# Check database is healthy
+docker compose exec db psql -U notes -l
+
+# Restart services
+docker compose restart
+```
+
+## 📚 Additional Documentation
+
+For developers and advanced configuration, see the `docs/` directory:
+- **architecture.md** - Technical system design
+- **requirements.md** - Feature specifications
+- **roadmap.md** - Future development plans
+
+## Contributing
+
+Contributions welcome! Please open an issue or pull request on GitHub.
+
+**Repository:** https://github.com/TheFozid/go-notes
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **Hocuspocus** - Real-time collaboration framework
-- **Quill** - Rich text editor
-- **Y.js** - CRDT framework for conflict-free editing
-- **Gin** - Go web framework
-- **Vite** - Fast frontend build tool
-
-## 📞 Support
-
-- **Issues:** https://github.com/TheFozid/go-notes/issues
-- **Discussions:** https://github.com/TheFozid/go-notes/discussions
-
-## 🗺️ Roadmap
-
-See [docs/roadmap.md](docs/roadmap.md) for planned features and future development.
-
-**Upcoming features:**
-- Title auto-extraction from content
-- Tag autocomplete and filtering
-- Mobile responsive design
-- Advanced search with filters
-- Keyboard shortcuts
-- Export functionality (PDF/Markdown)
+Built with:
+- [Hocuspocus](https://tiptap.dev/hocuspocus) - Real-time collaboration
+- [Y.js](https://yjs.dev/) - CRDT framework
+- [Quill](https://quilljs.com/) - Rich text editor
+- [Go](https://golang.org/) - Backend language
+- [React](https://react.dev/) - Frontend framework
 
 ---
+
+**Made y [TheFozid](https://github.com/TheFozid)**
