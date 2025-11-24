@@ -254,4 +254,4 @@ Built with:
 
 ---
 
-**Made y [TheFozid](https://github.com/TheFozid)**
+**Made by [TheFozid](https://github.com/TheFozid)**
