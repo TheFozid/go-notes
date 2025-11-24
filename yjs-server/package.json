@@ -1,0 +1,22 @@
+{
+  "name": "yjs-server",
+  "version": "2.0.0",
+  "description": "Hocuspocus server for go-notes collaborative editing with PostgreSQL persistence",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@hocuspocus/server": "^2.13.0",
+    "@hocuspocus/extension-database": "^2.13.0",
+    "yjs": "^13.6.0",
+    "y-quill": "^1.0.0",
+    "quill-delta": "^5.1.0",
+    "axios": "^1.6.0",
+    "pg": "^8.11.0",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

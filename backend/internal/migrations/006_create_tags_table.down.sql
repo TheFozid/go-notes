@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS note_tags;
+DROP INDEX IF EXISTS tags_name_lower_idx;
+DROP TABLE IF EXISTS tags;

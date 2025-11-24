@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(64) NOT NULL
+);
+CREATE UNIQUE INDEX tags_name_lower_idx ON tags (LOWER(name));
+
+CREATE TABLE IF NOT EXISTS note_tags (
+    note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (note_id, tag_id)
+);

@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   MODERN DESIGN SYSTEM - CSS Variables
+   ============================================ */
+
+:root {
+  /* Primary Colors */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #dbeafe;
+  
+  /* Neutral Colors */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  
+  /* Semantic Colors */
+  --success: #10b981;
+  --success-hover: #059669;
+  --success-light: #d1fae5;
+  
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-light: #fee2e2;
+  
+  --warning: #f59e0b;
+  --warning-hover: #d97706;
+  --warning-light: #fef3c7;
+  
+  /* Backgrounds */
+  --bg-main: #ffffff;
+  --bg-panel: #f9fafb;
+  --bg-hover: #f3f4f6;
+  --bg-selected: #eff6ff;
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--gray-800);
+}
+
+/* ============================================
+   QUILL EDITOR OVERRIDES
+   ============================================ */
+
+.ql-toolbar.ql-snow {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.ql-toolbar.ql-snow .ql-formats {
+  margin-right: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+.ql-toolbar.ql-snow .ql-stroke {
+  stroke: var(--gray-600) !important;
+}
+
+.ql-toolbar.ql-snow .ql-fill {
+  fill: var(--gray-600) !important;
+}
+
+.ql-toolbar.ql-snow button:hover .ql-stroke,
+.ql-toolbar.ql-snow button:focus .ql-stroke,
+.ql-toolbar.ql-snow button.ql-active .ql-stroke {
+  stroke: var(--primary) !important;
+}
+
+.ql-toolbar.ql-snow button:hover .ql-fill,
+.ql-toolbar.ql-snow button:focus .ql-fill,
+.ql-toolbar.ql-snow button.ql-active .ql-fill {
+  fill: var(--primary) !important;
+}
+
+.ql-toolbar.ql-snow button:hover,
+.ql-toolbar.ql-snow button:focus {
+  background-color: var(--gray-100) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.ql-container.ql-snow {
+  border-top: none !important;
+  font-family: var(--font-sans);
+}
+
+.ql-editor {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Quill dropdown styling */
+.ql-picker-options {
+  z-index: 10000 !important;
+  background-color: white !important;
+  border: 1px solid var(--gray-200) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.ql-picker-item:hover {
+  background-color: var(--gray-100) !important;
+}
+
+.ql-tooltip {
+  z-index: 10000 !important;
+  background-color: white !important;
+  border: 1px solid var(--gray-200) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Scrollbar styling */
+.ql-toolbar.ql-snow::-webkit-scrollbar {
+  height: 8px;
+}
+
+.ql-toolbar.ql-snow::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 4px;
+}
+
+.ql-toolbar.ql-snow::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+.ql-toolbar.ql-snow::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR (Global)
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* ============================================
+   MATERIAL SYMBOLS STYLING
+   ============================================ */
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  user-select: none;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.hover-lift {
+  transition: transform 0.15s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+}
+
+.focus-ring:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

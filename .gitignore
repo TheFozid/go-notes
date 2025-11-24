@@ -1,0 +1,29 @@
+# Backend
+backend/go-notes
+backend/static/
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+
+# Node modules
+yjs-server/node_modules/
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker volumes (not tracked anyway, but good to list)
+deploy/db_data/
