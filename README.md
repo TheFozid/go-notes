@@ -6,6 +6,7 @@ A modern, collaborative note-taking application with real-time editing capabilit
 ![Go Version](https://img.shields.io/badge/go-1.25-blue.svg)
 ![Node Version](https://img.shields.io/badge/node-20-green.svg)
 
+
 ## ✨ Features
 
 ### 📝 Rich Text Editing
