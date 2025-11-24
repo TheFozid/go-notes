@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: go-notes-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-notes}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-notespass}
+      POSTGRES_DB: ${DB_NAME:-notesdb}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - notes-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-notes}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  yjs:
+    image: ghcr.io/thefozid/go-notes-yjs:latest
+    container_name: go-notes-yjs
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-notes}
+      DB_PASSWORD: ${DB_PASSWORD:-notespass}
+      DB_NAME: ${DB_NAME:-notesdb}
+      YJS_WS_PORT: ${YJS_WS_PORT:-1234}
+      YJS_HTTP_PORT: ${YJS_HTTP_PORT:-1235}
+      GO_BACKEND_URL: http://backend:${PORT:-8060}
+      API_BASE_PATH: ${API_BASE_PATH:-/test}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - notes-network
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/thefozid/go-notes-backend:latest
+    container_name: go-notes-backend
+    ports:
+      - "${PORT:-8060}:${PORT:-8060}"
+    environment:
+      PORT: ${PORT:-8060}
+      API_BASE_PATH: ${API_BASE_PATH:-/test}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-notes}
+      DB_PASSWORD: ${DB_PASSWORD:-notespass}
+      DB_NAME: ${DB_NAME:-notesdb}
+      YJS_WS_PORT: ${YJS_WS_PORT:-1234}
+      YJS_HTTP_PORT: ${YJS_HTTP_PORT:-1235}
+      TRASH_AUTO_DELETE_DAYS: ${TRASH_AUTO_DELETE_DAYS:-30}
+    depends_on:
+      db:
+        condition: service_healthy
+      yjs:
+        condition: service_started
+    networks:
+      - notes-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+
+networks:
+  notes-network:
+    driver: bridge
