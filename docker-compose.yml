@@ -12,7 +12,7 @@ services:
       - notes-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-notes}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-notes} -d ${DB_NAME:-notesdb}"]
       interval: 10s
       timeout: 5s
       retries: 5
