@@ -27,3 +27,5 @@ npm-debug.log*
 
 # Docker volumes (not tracked anyway, but good to list)
 deploy/db_data/
+electron/dist/
+electron/node_modules/
