@@ -11,6 +11,7 @@ A modern collaborative note-taking application with real-time editing. Multiple 
 - **User management** - Multi-user with workspace sharing
 - **Offline support** - Edit offline, auto-syncs when reconnected
 - **Trash system** - Soft-delete with restore capability
+- **💻 Desktop app** - Native Electron app for Linux, Windows, macOS
 - **📱 Android app** - Native mobile client with offline caching
 
 ## Screenshots
@@ -23,7 +24,7 @@ A modern collaborative note-taking application with real-time editing. Multiple 
 
 ## Quick Start
 
-### Installation
+### Server Installation
 
 1. **Create directory and download files**
 ```bash
@@ -52,16 +53,71 @@ A modern collaborative note-taking application with real-time editing. Multiple 
    - Open: `http://localhost:8060/go-notes/`
    - Create your admin account
 
-### Update
+### Update Server
 ```bash
 cd go-notes
 docker compose pull
 docker compose up -d
 ```
 
+---
+
+## 💻 Desktop App
+
+Native Electron application for Linux, Windows, and macOS.
+
+### Features
+- Server configuration screen
+- Offline caching
+- Connection status indicator
+- Change server menu option
+- Native desktop performance
+
+### Installation
+
+#### Arch Linux (AUR)
+```bash
+yay -S go-notes
+# or
+paru -S go-notes
+```
+
+#### Other Linux Distributions
+Download the **AppImage** from [GitHub Releases](https://github.com/TheFozid/go-notes/releases/latest):
+```bash
+# Download and make executable
+chmod +x go-notes-*-linux-x86_64.AppImage
+
+# Run
+./go-notes-*-linux-x86_64.AppImage
+```
+
+Or extract the **tar.gz** to install manually.
+
+#### Windows & macOS
+Download installers from [GitHub Releases](https://github.com/TheFozid/go-notes/releases/latest) *(builds coming soon - or build from source)*
+
+### First Launch
+1. Open the app
+2. Enter your go-notes server URL
+   - Example: `https://notes.yourdomain.com/go-notes`
+   - Or local: `http://192.168.1.100:8060/go-notes`
+3. Login with your credentials
+
+### Offline Access
+The desktop app caches the interface and previously viewed content for offline viewing. When offline:
+- ✅ View previously loaded notes (read-only)
+- ✅ Navigate through cached workspaces
+- ❌ Cannot create or edit notes
+- ❌ Cannot sync changes
+
+Content automatically syncs when connection is restored.
+
+---
+
 ## 📱 Android App
 
-A native Android client for accessing go-notes on mobile devices.
+Native Android client for accessing go-notes on mobile devices.
 
 ### Features
 - Configure custom server URL
@@ -72,7 +128,7 @@ A native Android client for accessing go-notes on mobile devices.
 
 ### Download
 
-**[Download go-notes.apk](https://github.com/TheFozid/go-notes/releases/latest)** from GitHub Releases
+**[Download go-notes-android.apk](https://github.com/TheFozid/go-notes/releases/latest)** from GitHub Releases
 
 ### Installation
 
@@ -89,13 +145,9 @@ A native Android client for accessing go-notes on mobile devices.
 - Access to a go-notes server (local network or public domain)
 
 ### Offline Access
-The Android app caches the interface and previously viewed content for offline viewing. When offline:
-- ✅ View previously loaded notes (read-only)
-- ✅ Navigate through cached workspaces
-- ❌ Cannot create or edit notes
-- ❌ Cannot sync changes
+Same offline capabilities as desktop app - read-only access to cached content.
 
-Content automatically syncs when connection is restored.
+---
 
 ## 🌐 Reverse Proxy (Nginx)
 
@@ -232,16 +284,17 @@ Before production deployment:
 
 ## 📊 System Requirements
 
-**Minimum:**
-- 1 CPU core
-- 512MB RAM
-- 2GB disk space
-- Docker & Docker Compose
+**Server:**
+- Minimum: 1 CPU core, 512MB RAM, 2GB disk, Docker & Docker Compose
+- Recommended: 2 CPU cores, 2GB RAM, 10GB disk
 
-**Recommended:**
-- 2 CPU cores
-- 2GB RAM
-- 10GB disk space
+**Desktop App:**
+- Linux (x86_64), Windows 10+, or macOS 10.13+
+- ~200MB disk space
+
+**Android App:**
+- Android 8.0+ (API 26+)
+- ~10MB disk space
 
 ## Troubleshooting
 
@@ -273,11 +326,10 @@ docker compose exec db psql -U notes -l
 docker compose restart
 ```
 
-### Android app issues
+### Desktop/Android app issues
 - **Can't connect:** Verify server URL includes protocol (http:// or https://)
 - **Offline content missing:** Content only cached after viewing while online
 - **Connection status stuck red:** Check device network settings
-- **Menu button overlaps:** This is expected - button positioned to avoid web interface controls
 
 ## 📚 Additional Documentation
 
@@ -304,6 +356,7 @@ Built with:
 - [Quill](https://quilljs.com/) - Rich text editor
 - [Go](https://golang.org/) - Backend language
 - [React](https://react.dev/) - Frontend framework
+- [Electron](https://www.electronjs.org/) - Desktop platform
 - [Android](https://developer.android.com/) - Mobile platform
 
 ---
