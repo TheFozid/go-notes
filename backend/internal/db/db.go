@@ -96,8 +96,8 @@ func ListUsers(db *sql.DB) ([]User, error) {
     for rows.Next() {
         var u User
         err := rows.Scan(&u.ID, &u.Username, &u.IsAdmin, &u.CreatedAt)
-        if err == nil {
-            users = append(users, u)
+        if err != nil {
+            return nil, fmt.Errorf("failed to scan user: %v", err)  // Return the actual error
         }
     }
     return users, nil
