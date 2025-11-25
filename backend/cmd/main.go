@@ -262,36 +262,64 @@ func main() {
         }
         c.JSON(http.StatusOK, user)
     })
-    userGroup.PUT("/:id", func(c *gin.Context) {
-        userID := c.GetInt("user_id")
-        isAdmin := c.GetBool("is_admin")
-        paramID := c.Param("id")
-        id := 0
-        fmt.Sscanf(paramID, "%d", &id)
-        if !isAdmin && userID != id {
-            c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
-            return
-        }
-        var req struct {
-            Username string `json:"username"`
-            Password string `json:"password"`
-        }
-        if err := c.ShouldBindJSON(&req); err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-            return
-        }
-        passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+
+
+userGroup.PUT("/:id", func(c *gin.Context) {
+    userID := c.GetInt("user_id")
+    isAdmin := c.GetBool("is_admin")
+    paramID := c.Param("id")
+    id := 0
+    fmt.Sscanf(paramID, "%d", &id)
+    if !isAdmin && userID != id {
+        c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+        return
+    }
+    
+    var req struct {
+        Username string `json:"username"`
+        Password string `json:"password"`
+    }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+        return
+    }
+    
+    // Get current user data
+    user, err := db.GetUserByID(database, id)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+    
+    // Use existing values if not provided
+    newUsername := user.Username
+    newPasswordHash := user.PasswordHash
+    
+    if req.Username != "" {
+        newUsername = req.Username
+    }
+    
+    if req.Password != "" {
+        hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Password hashing failed"})
             return
         }
-        err = db.UpdateUser(database, id, req.Username, string(passwordHash))
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Update failed"})
-            return
-        }
-        c.JSON(http.StatusOK, gin.H{"message": "User updated"})
-    })
+        newPasswordHash = string(hash)
+    }
+    
+    err = db.UpdateUser(database, id, newUsername, newPasswordHash)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Update failed"})
+        return
+    }
+    
+    // Return updated user
+    updatedUser, _ := db.GetUserByID(database, id)
+    c.JSON(http.StatusOK, updatedUser)
+})
+
     userGroup.DELETE("/:id", func(c *gin.Context) {
         userID := c.GetInt("user_id")
         isAdmin := c.GetBool("is_admin")
