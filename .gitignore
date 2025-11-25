@@ -29,3 +29,4 @@ npm-debug.log*
 deploy/db_data/
 electron/dist/
 electron/node_modules/
+electron/pkg/
