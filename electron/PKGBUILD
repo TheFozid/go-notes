@@ -9,7 +9,7 @@ license=('MIT')
 depends=('gtk3' 'nss' 'alsa-lib')
 makedepends=('npm' 'nodejs')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('5ca9fceab51e8e8923b1626a6fac07a2ddf599e5d21d3cf6f11992e55c5cdfd4')
+sha256sums=('03408252cfe0febd7eb634c21df98675ca6a0ba5b7c573e9d687dd29f0045abf')
 
 build() {
     cd "${srcdir}/${pkgname}-${pkgver}/electron"
@@ -17,8 +17,8 @@ build() {
     # Install dependencies
     npm install --cache "${srcdir}/npm-cache"
     
-    # Build the application
-    npm run build:linux
+    # Build only the unpacked linux directory
+    npm exec -- electron-builder --linux dir
 }
 
 package() {

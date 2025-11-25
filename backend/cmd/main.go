@@ -73,24 +73,6 @@ func main() {
     r := gin.Default()
     api := r.Group(basePath)
 
-// Serve static frontend files
-    api.Static("/assets", "./static/assets")
-    api.StaticFile("/vite.svg", "./static/vite.svg")
-    
-    // Root route serves index.html
-    api.GET("/", func(c *gin.Context) {
-        c.Header("Content-Type", "text/html")
-        content, err := os.ReadFile("./static/index.html")
-        if err != nil {
-            c.String(500, "Error loading page")
-            return
-        }
-        // Inject base tag
-        html := string(content)
-        baseTag := fmt.Sprintf(`<base href="%s/">`, basePath)
-        html = strings.Replace(html, "<head>", "<head>"+baseTag, 1)
-        c.String(200, html)
-    })
 
     api.GET("/health", func(c *gin.Context) {
         c.JSON(200, gin.H{"status": "ok"})
@@ -1057,6 +1039,25 @@ api.Any("/yjs", func(c *gin.Context) {
 		// Handle WebSocket upgrade and proxy
 		proxy.ServeHTTP(c.Writer, c.Request)
 	})
+
+// Serve static frontend files
+    api.Static("/assets", "./static/assets")
+    api.StaticFile("/vite.svg", "./static/vite.svg")
+    
+    // Root route serves index.html
+    api.GET("/", func(c *gin.Context) {
+        c.Header("Content-Type", "text/html")
+        content, err := os.ReadFile("./static/index.html")
+        if err != nil {
+            c.String(500, "Error loading page")
+            return
+        }
+        // Inject base tag
+        html := string(content)
+        baseTag := fmt.Sprintf(`<base href="%s/">`, basePath)
+        html = strings.Replace(html, "<head>", "<head>"+baseTag, 1)
+        c.String(200, html)
+    })
 
 // Catch-all for React Router - must be last
     r.NoRoute(func(c *gin.Context) {
