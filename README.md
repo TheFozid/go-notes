@@ -13,6 +13,14 @@ A modern collaborative note-taking application with real-time editing. Multiple 
 - **Trash system** - Soft-delete with restore capability
 - **📱 Android app** - Native mobile client with offline caching
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/sc1.jpg" width="30%" />
+  <img src="screenshots/sc2.jpg" width="30%" />
+  <img src="screenshots/sc3.jpg" width="30%" />
+</p>
+
 ## Quick Start
 
 ### Installation
