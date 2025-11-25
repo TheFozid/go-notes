@@ -11,6 +11,7 @@ A modern collaborative note-taking application with real-time editing. Multiple 
 - **User management** - Multi-user with workspace sharing
 - **Offline support** - Edit offline, auto-syncs when reconnected
 - **Trash system** - Soft-delete with restore capability
+- **📱 Android app** - Native mobile client with offline caching
 
 ## Quick Start
 
@@ -49,6 +50,44 @@ cd go-notes
 docker compose pull
 docker compose up -d
 ```
+
+## 📱 Android App
+
+A native Android client for accessing go-notes on mobile devices.
+
+### Features
+- Configure custom server URL
+- Offline caching (read-only)
+- Connection status indicator (red bars when offline)
+- Change server option via menu
+- Native Android performance
+
+### Download
+
+**[Download go-notes.apk](https://github.com/TheFozid/go-notes/releases/latest)** from GitHub Releases
+
+### Installation
+
+1. Download the APK on your Android device
+2. Enable "Install from unknown sources" in Android settings
+3. Open the APK file to install
+4. Launch the app and enter your go-notes server URL
+   - Example: `https://notes.yourdomain.com/go-notes`
+   - Or local: `http://192.168.1.100:8060/go-notes`
+5. Login with your credentials
+
+### Requirements
+- Android 8.0+ (API 26+)
+- Access to a go-notes server (local network or public domain)
+
+### Offline Access
+The Android app caches the interface and previously viewed content for offline viewing. When offline:
+- ✅ View previously loaded notes (read-only)
+- ✅ Navigate through cached workspaces
+- ❌ Cannot create or edit notes
+- ❌ Cannot sync changes
+
+Content automatically syncs when connection is restored.
 
 ## 🌐 Reverse Proxy (Nginx)
 
@@ -226,6 +265,12 @@ docker compose exec db psql -U notes -l
 docker compose restart
 ```
 
+### Android app issues
+- **Can't connect:** Verify server URL includes protocol (http:// or https://)
+- **Offline content missing:** Content only cached after viewing while online
+- **Connection status stuck red:** Check device network settings
+- **Menu button overlaps:** This is expected - button positioned to avoid web interface controls
+
 ## 📚 Additional Documentation
 
 For developers and advanced configuration, see the `docs/` directory:
@@ -251,6 +296,7 @@ Built with:
 - [Quill](https://quilljs.com/) - Rich text editor
 - [Go](https://golang.org/) - Backend language
 - [React](https://react.dev/) - Frontend framework
+- [Android](https://developer.android.com/) - Mobile platform
 
 ---
 
