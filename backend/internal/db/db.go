@@ -92,13 +92,16 @@ func ListUsers(db *sql.DB) ([]User, error) {
         return nil, err
     }
     defer rows.Close()
-    var users []User
+    
+    users := []User{}
+    
     for rows.Next() {
         var u User
         err := rows.Scan(&u.ID, &u.Username, &u.IsAdmin, &u.CreatedAt)
         if err != nil {
-            return nil, fmt.Errorf("failed to scan user: %v", err)  // Return the actual error
+            return nil, fmt.Errorf("failed to scan user: %v", err)
         }
+        users = append(users, u)
     }
     return users, nil
 }
