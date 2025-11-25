@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-notes - Configure Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>go-notes</h1>
+            <p class="subtitle">Collaborative Note-Taking</p>
+        </div>
+
+        <div class="form-group">
+            <label for="serverUrl">Server URL</label>
+            <input 
+                type="text" 
+                id="serverUrl" 
+                placeholder="https://notes.example.com"
+                autofocus
+            />
+        </div>
+
+        <div class="examples">
+            <strong>Examples:</strong><br>
+            https://notes.example.com<br>
+            http://192.168.1.100:8060/go-notes
+        </div>
+
+        <button id="connectBtn" class="btn-primary">Connect</button>
+
+        <div id="errorMsg" class="error-msg"></div>
+    </div>
+
+    <script src="config.js"></script>
+</body>
+</html>

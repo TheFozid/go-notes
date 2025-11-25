@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-notes</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="connection-indicator" id="connectionIndicator"></div>
+    
+    <div class="webview-container">
+        <iframe id="webview" class="webview-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"></iframe>
+    </div>
+
+    <button class="menu-btn" id="menuBtn">⋮</button>
+    
+    <div class="menu-popup" id="menuPopup">
+        <div class="menu-item" id="changeServerBtn">Change Server</div>
+    </div>
+
+    <script src="webview.js"></script>
+</body>
+</html>
