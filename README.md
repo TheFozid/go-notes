@@ -94,8 +94,10 @@ chmod +x go-notes-*-linux-x86_64.AppImage
 
 Or extract the **tar.gz** to install manually.
 
-#### Windows & macOS
-Download installers from [GitHub Releases](https://github.com/TheFozid/go-notes/releases/latest) *(builds coming soon - or build from source)*
+#### Windows
+Download from [GitHub Releases](https://github.com/TheFozid/go-notes/releases/latest):
+- **Setup installer** (recommended): `go-notes-*-windows-install.exe`
+- **Portable version**: `go-notes-*-windows-portable.exe` (no installation required)
 
 ### First Launch
 1. Open the app
