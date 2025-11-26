@@ -9,6 +9,7 @@ import (
     "sync"
     "strconv"
     "github.com/gin-gonic/gin"
+    "github.com/gin-contrib/cors"
     "go-notes/backend/internal/db"
     "go-notes/backend/internal/auth"
     "golang.org/x/crypto/bcrypt"
@@ -16,6 +17,9 @@ import (
     "time"
     "net/http/httputil"
     "net/url"
+    "github.com/ulule/limiter/v3"
+    mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+    "github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
 func atoi(s string) int {
@@ -70,12 +74,79 @@ func main() {
         }
     }()
 
+
     r := gin.Default()
+    
+    // Configure CORS
+    allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+    if allowedOrigins == "" {
+        // Default: allow from same origin (use PORT and API_BASE_PATH from env)
+        defaultPort := os.Getenv("PORT")
+        if defaultPort == "" {
+            defaultPort = "8080"
+        }
+        allowedOrigins = fmt.Sprintf("http://localhost:%s,http://127.0.0.1:%s", defaultPort, defaultPort)
+    }
+    
+    origins := []string{}
+    if allowedOrigins != "*" {
+        origins = strings.Split(allowedOrigins, ",")
+        // Trim whitespace from each origin
+        for i := range origins {
+            origins[i] = strings.TrimSpace(origins[i])
+        }
+    } else {
+        origins = []string{"*"}
+    }
+    
+    corsConfig := cors.Config{
+        AllowOrigins:     origins,
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: allowedOrigins != "*", // Only allow credentials if not wildcard
+        MaxAge:           12 * time.Hour,
+    }
+    
+    r.Use(cors.New(corsConfig))
+    
     api := r.Group(basePath)
 
 
-    api.GET("/health", func(c *gin.Context) {
+    // Setup rate limiting
+    store := memory.NewStore()
+    
+    // General rate limit: 60 requests per minute
+    generalRate := limiter.Rate{
+        Period: 1 * time.Minute,
+        Limit:  60,
+    }
+    generalMiddleware := mgin.NewMiddleware(limiter.New(store, generalRate))
+    
+    // Strict rate limit for auth: 5 requests per minute
+    authRate := limiter.Rate{
+        Period: 1 * time.Minute,
+        Limit:  5,
+    }
+    authMiddleware := mgin.NewMiddleware(limiter.New(store, authRate))
+
+api.GET("/health", func(c *gin.Context) {
         c.JSON(200, gin.H{"status": "ok"})
+    })
+    
+    // Liveness probe - is the application alive?
+    api.GET("/health/live", func(c *gin.Context) {
+        c.JSON(200, gin.H{"status": "alive"})
+    })
+    
+    // Readiness probe - is the application ready to serve traffic?
+    api.GET("/health/ready", func(c *gin.Context) {
+        // Check database connectivity
+        if err := database.Ping(); err != nil {
+            c.JSON(503, gin.H{"status": "not ready", "error": "database unreachable"})
+            return
+        }
+        c.JSON(200, gin.H{"status": "ready", "database": "connected"})
     })
 
     var mu sync.Mutex
@@ -92,7 +163,7 @@ func main() {
         c.JSON(http.StatusOK, gin.H{"completed": adminExists})
     })
 
-    api.POST("/setup", func(c *gin.Context) {
+    api.POST("/setup", authMiddleware, func(c *gin.Context) {
         mu.Lock()
         defer mu.Unlock()
         if adminExists {
@@ -125,7 +196,7 @@ func main() {
     })
 
     // --- Authentication/Login ---
-    api.POST("/login", func(c *gin.Context) {
+    api.POST("/login", authMiddleware, func(c *gin.Context) {
         var req struct {
             Username string `json:"username"`
             Password string `json:"password"`
@@ -208,6 +279,7 @@ func main() {
     // --- User CRUD & Access Control ---
     userGroup := api.Group("/users")
     userGroup.Use(auth.AuthRequired(database))
+    userGroup.Use(generalMiddleware)
 
     userGroup.GET("/", func(c *gin.Context) {
         // Allow all authenticated users to list users (needed for workspace sharing)
@@ -826,6 +898,7 @@ notesGroup.POST("", func(c *gin.Context) {
     c.JSON(http.StatusCreated, note)
 })
 
+
 notesGroup.GET("", func(c *gin.Context) {
         workspaceID, _ := strconv.Atoi(c.Param("id"))
         userID := c.GetInt("user_id")
@@ -848,14 +921,12 @@ notesGroup.GET("", func(c *gin.Context) {
             return
         }
         
-        // Add tags to each note
-        for i := range notes {
-            tags, _ := db.ListTagsForNote(database, notes[i].ID)
-            notes[i].Tags = tags
-        }
+        // Tags are already loaded by ListNotes using batch loading
+        // No need to load them again here
         
         c.JSON(http.StatusOK, notes)
     })
+
 
 notesGroup.PUT("/:note_id", func(c *gin.Context) {
     noteID, _ := strconv.Atoi(c.Param("note_id"))

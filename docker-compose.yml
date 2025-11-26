@@ -46,6 +46,7 @@ services:
       PORT: ${PORT:-8060}
       API_BASE_PATH: ${API_BASE_PATH:-/test}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       DB_HOST: db
       DB_PORT: ${DB_PORT:-5432}
       DB_USER: ${DB_USER:-notes}
@@ -59,6 +60,12 @@ services:
         condition: service_healthy
       yjs:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-8060}${API_BASE_PATH:-/test}/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - notes-network
     restart: unless-stopped

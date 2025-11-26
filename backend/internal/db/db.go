@@ -390,7 +390,51 @@ func ListNotes(db *sql.DB, workspaceID int, folderID *int, includeTrashed bool) 
             }
         }
     }
+    
+    // Batch load tags for all notes (prevents N+1 queries)
+    if len(notes) > 0 {
+        noteIDs := make([]int, len(notes))
+        for i, note := range notes {
+            noteIDs[i] = note.ID
+        }
+        
+        tagMap, err := batchLoadTags(db, noteIDs)
+        if err == nil {
+            for i := range notes {
+                notes[i].Tags = tagMap[notes[i].ID]
+            }
+        }
+    }
+    
     return notes, nil
+}
+
+// batchLoadTags loads tags for multiple notes in a single query
+func batchLoadTags(db *sql.DB, noteIDs []int) (map[int][]Tag, error) {
+    query := `
+        SELECT nt.note_id, t.id, t.name
+        FROM note_tags nt
+        JOIN tags t ON t.id = nt.tag_id
+        WHERE nt.note_id = ANY($1)
+        ORDER BY nt.note_id, LOWER(t.name)
+    `
+    
+    rows, err := db.Query(query, pq.Array(noteIDs))
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    
+    tagMap := make(map[int][]Tag)
+    for rows.Next() {
+        var noteID int
+        var tag Tag
+        if err := rows.Scan(&noteID, &tag.ID, &tag.Name); err == nil {
+            tagMap[noteID] = append(tagMap[noteID], tag)
+        }
+    }
+    
+    return tagMap, nil
 }
 
 // --- Trash/Restore/Empty Functions ---
