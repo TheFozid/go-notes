@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
 import NoteNode from './NoteNode';
+import { searchNotes } from '../api/workspaces';
+
+type SearchMode = 'metadata' | 'full';
 
 export default function SearchPanel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('metadata');
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const notes = useWorkspaceStore((state) => state.notes);
+  const [isSearching, setIsSearching] = useState(false);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
   const timeoutRef = useRef<number | null>(null);
 
@@ -27,27 +31,28 @@ export default function SearchPanel() {
     };
   }, [searchQuery]);
 
-  // Perform search when debounced query changes
+  // Perform search when debounced query or mode changes
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setSearchResults([]);
       return;
     }
 
-    const query = debouncedQuery.toLowerCase();
-    
-    const results = notes.filter((note) => {
-      if (note.is_trashed) return false;
-      
-      if (note.title.toLowerCase().includes(query)) return true;
-      
-      if (note.tags?.some(tag => tag.name.toLowerCase().includes(query))) return true;
-      
-      return false;
-    });
+    async function performSearch() {
+      setIsSearching(true);
+      try {
+        const results = await searchNotes(debouncedQuery, searchMode);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('[SearchPanel] Search failed:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }
 
-    setSearchResults(results);
-  }, [debouncedQuery, notes]);
+    performSearch();
+  }, [debouncedQuery, searchMode]);
 
   return (
     <div style={{ 
@@ -119,6 +124,72 @@ export default function SearchPanel() {
         </div>
       </div>
 
+      {/* Search Mode Toggle */}
+      <div style={{ 
+        padding: '0 12px 12px 12px',
+        display: 'flex',
+        gap: '8px'
+      }}>
+        <button
+          onClick={() => setSearchMode('metadata')}
+          style={{
+            flex: 1,
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: 500,
+            border: '1px solid',
+            borderColor: searchMode === 'metadata' ? '#2563eb' : '#d1d5db',
+            borderRadius: '6px',
+            backgroundColor: searchMode === 'metadata' ? '#eff6ff' : '#ffffff',
+            color: searchMode === 'metadata' ? '#2563eb' : '#6b7280',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            fontFamily: 'inherit'
+          }}
+          onMouseEnter={(e) => {
+            if (searchMode !== 'metadata') {
+              e.currentTarget.style.borderColor = '#9ca3af';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (searchMode !== 'metadata') {
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }
+          }}
+        >
+          Title + Tags
+        </button>
+        <button
+          onClick={() => setSearchMode('full')}
+          style={{
+            flex: 1,
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: 500,
+            border: '1px solid',
+            borderColor: searchMode === 'full' ? '#2563eb' : '#d1d5db',
+            borderRadius: '6px',
+            backgroundColor: searchMode === 'full' ? '#eff6ff' : '#ffffff',
+            color: searchMode === 'full' ? '#2563eb' : '#6b7280',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            fontFamily: 'inherit'
+          }}
+          onMouseEnter={(e) => {
+            if (searchMode !== 'full') {
+              e.currentTarget.style.borderColor = '#9ca3af';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (searchMode !== 'full') {
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }
+          }}
+        >
+          Full Content
+        </button>
+      </div>
+
       {/* Search Results */}
       {debouncedQuery.trim() && (
         <div style={{ 
@@ -127,7 +198,16 @@ export default function SearchPanel() {
           maxHeight: '400px',
           overflowY: 'auto'
         }}>
-          {searchResults.length === 0 ? (
+          {isSearching ? (
+            <div style={{ 
+              padding: '16px',
+              color: '#9ca3af',
+              fontSize: '13px',
+              textAlign: 'center'
+            }}>
+              Searching...
+            </div>
+          ) : searchResults.length === 0 ? (
             <div style={{ 
               padding: '16px',
               color: '#9ca3af',
@@ -147,6 +227,7 @@ export default function SearchPanel() {
                 letterSpacing: '0.05em'
               }}>
                 {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
+                {searchMode === 'full' && ' (content search)'}
               </div>
               {searchResults.map((note) => {
                 const workspace = workspaces.find(w => w.id === note.workspace_id);

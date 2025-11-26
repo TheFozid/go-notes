@@ -1002,6 +1002,73 @@ notesGroup.PUT("/:note_id", func(c *gin.Context) {
         c.JSON(http.StatusOK, gin.H{"message": "Tags updated"})
     })
 
+
+// Update note searchable text
+notesGroup.PUT("/:note_id/search-text", func(c *gin.Context) {
+    noteID, _ := strconv.Atoi(c.Param("note_id"))
+    userID := c.GetInt("user_id")
+    
+    // Get note to verify access
+    note, err := db.GetNote(database, noteID)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
+        return
+    }
+    
+    // Verify user is member of workspace
+    isMember, err := db.IsWorkspaceMember(database, note.WorkspaceID, userID)
+    if err != nil || !isMember {
+        c.JSON(http.StatusForbidden, gin.H{"error": "Not a member"})
+        return
+    }
+    
+    var req struct {
+        ContentText string `json:"content_text"`
+    }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+        return
+    }
+    
+    err = db.UpdateNoteSearchText(database, noteID, req.ContentText)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update search text"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, gin.H{"message": "Search text updated"})
+})
+
+// Search notes endpoint
+api.GET("/search", auth.AuthRequired(database), func(c *gin.Context) {
+    userID := c.GetInt("user_id")
+    query := c.Query("q")
+    mode := c.DefaultQuery("mode", "metadata") // "metadata" or "full"
+    
+    if query == "" {
+        c.JSON(http.StatusOK, []db.Note{})
+        return
+    }
+    
+    if mode != "metadata" && mode != "full" {
+        mode = "metadata"
+    }
+    
+    notes, err := db.SearchNotes(database, userID, query, mode)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Search failed"})
+        return
+    }
+    
+    // Add tags to each note
+    for i := range notes {
+        tags, _ := db.ListTagsForNote(database, notes[i].ID)
+        notes[i].Tags = tags
+    }
+    
+    c.JSON(http.StatusOK, notes)
+})
+
 // Handle /yjs without trailing slash (for Hocuspocus root connection)
 api.Any("/yjs", func(c *gin.Context) {
     yjsPort := os.Getenv("YJS_WS_PORT")

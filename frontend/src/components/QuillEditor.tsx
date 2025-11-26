@@ -6,7 +6,7 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import QuillCursors from 'quill-cursors';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
-import { getNote } from '../api/workspaces';
+import { getNote, updateNoteSearchText } from '../api/workspaces';
 import 'quill/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import ColorPicker from './ColorPicker';
@@ -333,6 +333,40 @@ function QuillEditor() {
     };
   }, [selectedNoteId, selectedWorkspaceId, token, user]);
 
+  // Extract and sync searchable text content
+  useEffect(() => {
+    if (!quillRef.current || !selectedNoteId || !selectedWorkspaceId) return;
+
+    const quill = quillRef.current;
+    let timeoutId: number | undefined;
+
+    const updateSearchableContent = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      timeoutId = window.setTimeout(async () => {
+        const text = quill.getText().trim();
+        
+        try {
+          await updateNoteSearchText(selectedWorkspaceId, selectedNoteId, text);
+          console.log('[QuillEditor] Updated searchable text');
+        } catch (error) {
+          console.error('[QuillEditor] Failed to update searchable text:', error);
+        }
+      }, 2000);
+    };
+
+    quill.on('text-change', updateSearchableContent);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      quill.off('text-change', updateSearchableContent);
+    };
+  }, [selectedNoteId, selectedWorkspaceId]);
+
   function getRandomColor() {
     const colors = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
@@ -350,7 +384,7 @@ function QuillEditor() {
       await updateNote(selectedWorkspaceId, selectedNoteId, { color: newColor });
       setCurrentNoteColor(newColor);
 
-    useWorkspaceStore.getState().updateNote(selectedNoteId, { color: newColor });
+      useWorkspaceStore.getState().updateNote(selectedNoteId, { color: newColor });
       
       if (containerRef.current) {
         const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;

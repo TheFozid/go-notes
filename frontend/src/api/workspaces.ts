@@ -213,3 +213,27 @@ export async function setNoteTags(
 ): Promise<void> {
   await apiClient.put(`/workspaces/${workspaceId}/notes/${noteId}/tags`, { tags });
 }
+
+// ============================================================================
+// SEARCH ENDPOINTS
+// ============================================================================
+
+export async function updateNoteSearchText(
+  workspaceId: number,
+  noteId: number,
+  contentText: string
+): Promise<void> {
+  await apiClient.put(`/workspaces/${workspaceId}/notes/${noteId}/search-text`, {
+    content_text: contentText,
+  });
+}
+
+export async function searchNotes(
+  query: string,
+  mode: 'metadata' | 'full' = 'metadata'
+): Promise<Note[]> {
+  const response = await apiClient.get<Note[]>('/search', {
+    params: { q: query, mode },
+  });
+  return response.data;
+}

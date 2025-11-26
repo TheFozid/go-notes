@@ -9,7 +9,8 @@ import (
     "encoding/json"
     "log"
     "net/http"
-    _ "github.com/lib/pq"
+	"strings"
+    "github.com/lib/pq"
 )
 
 // --- DB Connection ---
@@ -688,6 +689,99 @@ func UpdateNoteMetadata(db *sql.DB, noteID int, updates map[string]interface{}) 
 	
 	_, err := db.Exec(query, args...)
 	return err
+}
+
+// UpdateNoteSearchText updates the searchable plain text content
+func UpdateNoteSearchText(db *sql.DB, noteID int, contentText string) error {
+	_, err := db.Exec(
+		"UPDATE notes SET content_text=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2",
+		contentText, noteID,
+	)
+	return err
+}
+
+// SearchNotes searches notes by title, tags, and optionally content
+// mode can be "metadata" (title+tags) or "full" (title+tags+content)
+func SearchNotes(db *sql.DB, userID int, query string, mode string) ([]Note, error) {
+	// Get all workspaces user is member of
+	workspaceIDs := []int{}
+	rows, err := db.Query(`
+		SELECT workspace_id FROM workspace_members WHERE user_id = $1
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var wsID int
+		if err := rows.Scan(&wsID); err == nil {
+			workspaceIDs = append(workspaceIDs, wsID)
+		}
+	}
+	rows.Close()
+	
+	if len(workspaceIDs) == 0 {
+		return []Note{}, nil
+	}
+	
+	// Build search query based on mode
+	var sqlQuery string
+	if mode == "full" {
+		sqlQuery = `
+			SELECT DISTINCT n.id
+			FROM notes n
+			LEFT JOIN note_tags nt ON nt.note_id = n.id
+			LEFT JOIN tags t ON t.id = nt.tag_id
+			WHERE n.workspace_id = ANY($1)
+			AND n.is_trashed = FALSE
+			AND (
+				LOWER(n.title) LIKE $2
+				OR LOWER(t.name) LIKE $2
+				OR to_tsvector('english', n.content_text) @@ plainto_tsquery('english', $3)
+			)
+			ORDER BY n.id DESC
+		`
+	} else {
+		// metadata mode - only title and tags
+		sqlQuery = `
+			SELECT DISTINCT n.id
+			FROM notes n
+			LEFT JOIN note_tags nt ON nt.note_id = n.id
+			LEFT JOIN tags t ON t.id = nt.tag_id
+			WHERE n.workspace_id = ANY($1)
+			AND n.is_trashed = FALSE
+			AND (
+				LOWER(n.title) LIKE $2
+				OR LOWER(t.name) LIKE $2
+			)
+			ORDER BY n.id DESC
+		`
+	}
+	
+	likeQuery := "%" + strings.ToLower(query) + "%"
+	
+	var searchRows *sql.Rows
+	if mode == "full" {
+		searchRows, err = db.Query(sqlQuery, pq.Array(workspaceIDs), likeQuery, query)
+	} else {
+		searchRows, err = db.Query(sqlQuery, pq.Array(workspaceIDs), likeQuery)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer searchRows.Close()
+	
+	var notes []Note
+	for searchRows.Next() {
+		var id int
+		if err := searchRows.Scan(&id); err == nil {
+			note, _ := GetNote(db, id)
+			if note != nil {
+				notes = append(notes, *note)
+			}
+		}
+	}
+	
+	return notes, nil
 }
 
 // IsDescendantFolder checks if potentialParentID is a descendant of folderID
