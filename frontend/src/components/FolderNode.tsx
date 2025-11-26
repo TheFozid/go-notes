@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
 import InputModal from './InputModal';
+import ConfirmModal from './ConfirmModal';
 import {
   updateFolder,
   deleteFolder,
@@ -23,6 +24,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showAddSubfolderModal, setShowAddSubfolderModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const {
     expandedFolders,
     toggleFolder,
@@ -66,14 +68,11 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
   }
 
   async function handleDelete() {
-    if (!confirm(`Are you sure you want to delete folder "${folder.name}"? This will delete all subfolders and notes.`)) {
-      return;
-    }
-
     try {
       await deleteFolder(workspaceId, folder.id);
       removeFolderFromStore(folder.id);
       onUpdate();
+      setShowDeleteModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to delete folder');
     }
@@ -134,7 +133,7 @@ const menuItems: ContextMenuItem[] = [
     { label: 'Move', onClick: () => enterMoveMode('folder', folder.id, workspaceId, folder.parent_id) },
     { label: 'Add Folder', onClick: () => setShowAddSubfolderModal(true) },
     { label: 'Add Note', onClick: () => setShowAddNoteModal(true) },
-    { label: 'Delete', onClick: handleDelete, danger: true },
+    { label: 'Delete', onClick: () => setShowDeleteModal(true), danger: true },
   ];
 
   return (
@@ -274,6 +273,18 @@ const menuItems: ContextMenuItem[] = [
         confirmText="Create"
         onConfirm={handleAddNote}
         onCancel={() => setShowAddNoteModal(false)}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Folder"
+        message={`Are you sure you want to delete "${folder.name}"? This will permanently delete all subfolders and notes inside. This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
       />
     </div>
   );

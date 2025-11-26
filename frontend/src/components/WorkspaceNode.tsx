@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
 import InputModal from './InputModal';
+import ConfirmModal from './ConfirmModal';
 import useAuthStore from '../store/authStore';
 import {
   updateWorkspace,
@@ -30,6 +31,8 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
   const [newName, setNewName] = useState(workspace.name);
   const [showAddFolderModal, setShowAddFolderModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
   const user = useAuthStore((state) => state.user);
   const {
     expandedWorkspaces,
@@ -78,26 +81,20 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
   }
 
   async function handleDelete() {
-    if (!confirm(`Are you sure you want to delete workspace "${workspace.name}"? This will delete all folders and notes.`)) {
-      return;
-    }
-
     try {
       await deleteWorkspace(workspace.id);
       removeWorkspaceFromStore(workspace.id);
+      setShowDeleteModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to delete workspace');
     }
   }
 
   async function handleLeave() {
-    if (!confirm(`Are you sure you want to leave workspace "${workspace.name}"?`)) {
-      return;
-    }
-
     try {
       await removeWorkspaceMember(workspace.id, user!.id);
       removeWorkspaceFromStore(workspace.id);
+      setShowLeaveModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to leave workspace');
     }
@@ -156,13 +153,13 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
     { label: 'Add Folder', onClick: () => setShowAddFolderModal(true) },
     { label: 'Add Note', onClick: () => setShowAddNoteModal(true) },
     { label: 'Manage Access', onClick: () => setShowManageAccess(true) },
-    { label: 'Delete', onClick: handleDelete, danger: true },
+    { label: 'Delete', onClick: () => setShowDeleteModal(true), danger: true },
   ];
 
   const memberMenuItems: ContextMenuItem[] = [
     { label: 'Add Folder', onClick: () => setShowAddFolderModal(true) },
     { label: 'Add Note', onClick: () => setShowAddNoteModal(true) },
-    { label: 'Leave Workspace', onClick: handleLeave, danger: true },
+    { label: 'Leave Workspace', onClick: () => setShowLeaveModal(true), danger: true },
   ];
 
   const menuItems = isOwner ? ownerMenuItems : memberMenuItems;
@@ -342,6 +339,30 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
         confirmText="Create"
         onConfirm={handleAddNote}
         onCancel={() => setShowAddNoteModal(false)}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Workspace"
+        message={`Are you sure you want to delete "${workspace.name}"? This will permanently delete all folders and notes. This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+
+      {/* Leave Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLeaveModal}
+        title="Leave Workspace"
+        message={`Are you sure you want to leave "${workspace.name}"? You will lose access to all notes and folders in this workspace.`}
+        confirmText="Leave"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={handleLeave}
+        onCancel={() => setShowLeaveModal(false)}
       />
     </div>
   );

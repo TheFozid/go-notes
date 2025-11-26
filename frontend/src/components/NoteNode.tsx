@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
 import InputModal from './InputModal';
+import ConfirmModal from './ConfirmModal';
 import {
   trashNote,
   updateNote,
@@ -17,6 +18,7 @@ interface NoteNodeProps {
 export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showTrashModal, setShowTrashModal] = useState(false);
   const [noteColor, setNoteColor] = useState(note.color);
   const {
     updateNote: updateNoteInStore,
@@ -63,8 +65,9 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
   async function handleTrash() {
     try {
       await trashNote(workspaceId, note.id);
-      updateNoteInStore(note.id, { is_trashed: true, trashed_at: new Date().toISOString() });
+      updateNoteInStore(note.id, { is_trashed: true });
       onUpdate();
+      setShowTrashModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to trash note');
     }
@@ -73,7 +76,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
   const menuItems: ContextMenuItem[] = [
     { label: 'Rename', onClick: () => setShowRenameModal(true) },
     { label: 'Move', onClick: () => enterMoveMode('note', note.id, workspaceId, note.folder_id) },
-    { label: 'Trash', onClick: handleTrash, danger: true },
+    { label: 'Trash', onClick: () => setShowTrashModal(true), danger: true },
   ];
 
   // Determine if we should show the color indicator
@@ -160,6 +163,18 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
         confirmText="Rename"
         onConfirm={handleRename}
         onCancel={() => setShowRenameModal(false)}
+      />
+
+      {/* Trash Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showTrashModal}
+        title="Move to Trash"
+        message={`Are you sure you want to move "${note.title}" to trash? You can restore it from the trash later.`}
+        confirmText="Move to Trash"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={handleTrash}
+        onCancel={() => setShowTrashModal(false)}
       />
     </div>
   );
