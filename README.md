@@ -6,6 +6,7 @@ A modern collaborative note-taking application with real-time editing. Multiple 
 
 - **Real-time collaboration** - Edit notes together with live cursor tracking
 - **Rich text editor** - Full formatting, code blocks, lists, images, LaTeX
+- **Full-text search** - Search note titles, tags, and content with two modes
 - **Workspaces & folders** - Organize notes with unlimited nesting
 - **Tags & search** - Quick note discovery across workspaces
 - **User management** - Multi-user with workspace sharing
@@ -59,6 +60,29 @@ cd go-notes
 docker compose pull
 docker compose up -d
 ```
+
+---
+
+## 🔍 Search Features
+
+go-notes includes powerful search capabilities with two modes:
+
+### Title + Tags Mode
+- **Fast search** across note titles and tags
+- **Instant results** as you type (500ms debounce)
+- Perfect for quick note discovery
+
+### Full Content Mode
+- **Full-text search** through all note content
+- Uses PostgreSQL full-text search with indexing
+- Searches titles, tags, AND note content
+- Automatically updates as you edit (2-second sync)
+
+**Usage:**
+1. Open the left panel (click the left panel icon)
+2. Use the Search section
+3. Toggle between "Title + Tags" and "Full Content"
+4. Type your query and results appear instantly
 
 ---
 
@@ -267,11 +291,17 @@ docker compose up -d
 ## 🏗️ Architecture
 
 **Three-service deployment:**
-- **PostgreSQL** - Stores metadata and document content
-- **Go Backend** - REST API, authentication, WebSocket proxy
+- **PostgreSQL** - Stores metadata, document content, and searchable text
+- **Go Backend** - REST API, authentication, WebSocket proxy, full-text search
 - **Hocuspocus (Node.js)** - Real-time collaboration server
 
 All services run in Docker containers and communicate via internal network.
+
+**Search Implementation:**
+- Note content automatically extracted as plain text
+- PostgreSQL GIN index for fast full-text search
+- 2-second debounce prevents excessive database writes
+- Search across all user's accessible workspaces
 
 ## 🔒 Security Checklist
 
@@ -289,6 +319,7 @@ Before production deployment:
 **Server:**
 - Minimum: 1 CPU core, 512MB RAM, 2GB disk, Docker & Docker Compose
 - Recommended: 2 CPU cores, 2GB RAM, 10GB disk
+  - Additional disk space needed for full-text search index
 
 **Desktop App:**
 - Linux (x86_64), Windows 10+, or macOS 10.13+
@@ -332,6 +363,12 @@ docker compose restart
 - **Can't connect:** Verify server URL includes protocol (http:// or https://)
 - **Offline content missing:** Content only cached after viewing while online
 - **Connection status stuck red:** Check device network settings
+
+### Search not finding content
+- **New notes:** Wait 2-3 seconds after typing for content to sync
+- **Existing notes:** Edit them briefly to populate search index
+- **Check mode:** Ensure "Full Content" mode is selected
+- **Check logs:** Look for "Updated searchable text" messages
 
 ## 📚 Additional Documentation
 
