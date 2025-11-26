@@ -13,6 +13,15 @@ interface WorkspaceState {
   expandedWorkspaces: Set<number>;
   expandedFolders: Set<number>;
   
+  // Move mode state
+  moveMode: {
+    active: boolean;
+    itemType: 'note' | 'folder' | null;
+    itemId: number | null;
+    sourceWorkspaceId: number | null;
+    sourceFolderId: number | null;
+  };
+  
   // Actions
   setWorkspaces: (workspaces: Workspace[]) => void;
   addWorkspace: (workspace: Workspace) => void;
@@ -34,6 +43,11 @@ interface WorkspaceState {
   
   toggleWorkspace: (id: number) => void;
   toggleFolder: (id: number) => void;
+  
+  // Move mode actions
+  enterMoveMode: (itemType: 'note' | 'folder', itemId: number, workspaceId: number, folderId: number | null) => void;
+  exitMoveMode: () => void;
+  canMoveTo: (targetFolderId: number | null) => boolean;
   
   // Helper methods
   getWorkspaceById: (id: number) => Workspace | undefined;
@@ -57,6 +71,14 @@ const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   selectedNoteId: null,
   expandedWorkspaces: new Set<number>(),
   expandedFolders: new Set<number>(),
+  
+  moveMode: {
+    active: false,
+    itemType: null,
+    itemId: null,
+    sourceWorkspaceId: null,
+    sourceFolderId: null,
+  },
   
   // Workspace actions
   setWorkspaces: (workspaces) => set({ workspaces }),
@@ -166,6 +188,71 @@ setSelectedNote: (id) => set((state) => {
     }
     return { expandedFolders: expanded };
   }),
+  
+  // Move mode actions
+  enterMoveMode: (itemType, itemId, workspaceId, folderId) => {
+    console.log('[MoveMode] Entering move mode:', { itemType, itemId, workspaceId, folderId });
+    set({
+      moveMode: {
+        active: true,
+        itemType,
+        itemId,
+        sourceWorkspaceId: workspaceId,
+        sourceFolderId: folderId,
+      }
+    });
+  },
+  
+  exitMoveMode: () => {
+    console.log('[MoveMode] Exiting move mode');
+    set({
+      moveMode: {
+        active: false,
+        itemType: null,
+        itemId: null,
+        sourceWorkspaceId: null,
+        sourceFolderId: null,
+      }
+    });
+  },
+  
+  canMoveTo: (targetFolderId) => {
+    const state = get();
+    const { itemType, itemId, sourceFolderId } = state.moveMode;
+    
+    if (!itemType || !itemId) return false;
+    
+    // Can't move to same location
+    if (targetFolderId === sourceFolderId) {
+      console.log('[MoveMode] Cannot move to same location');
+      return false;
+    }
+    
+    // If moving a folder, prevent moving into itself or its descendants
+    if (itemType === 'folder') {
+      // Can't move folder into itself
+      if (targetFolderId === itemId) {
+        console.log('[MoveMode] Cannot move folder into itself');
+        return false;
+      }
+      
+      // Check if target is a descendant of the folder being moved
+      if (targetFolderId !== null) {
+        let currentFolder = state.getFolderById(targetFolderId);
+        while (currentFolder) {
+          if (currentFolder.id === itemId) {
+            console.log('[MoveMode] Cannot move folder into its descendant');
+            return false;
+          }
+          currentFolder = currentFolder.parent_id ? state.getFolderById(currentFolder.parent_id) : undefined;
+        }
+      }
+    }
+    
+    console.log('[MoveMode] Can move to target:', targetFolderId);
+    return true;
+  },
+  
   
   // Helper methods
   getWorkspaceById: (id) => {

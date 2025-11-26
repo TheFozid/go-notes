@@ -5,6 +5,7 @@ import {
   deleteFolder,
   createFolder,
   createNote,
+  updateNote,
   type Folder,
 } from '../api/workspaces';
 import ContextMenu, { type ContextMenuItem } from './ContextMenu';
@@ -20,7 +21,6 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(folder.name);
-
   const {
     expandedFolders,
     toggleFolder,
@@ -30,6 +30,11 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
     addNote,
     getChildFolders,
     getNotesInFolder,
+    moveMode,
+    enterMoveMode,
+    exitMoveMode,
+    canMoveTo,
+    updateNote: updateNoteInStore,
   } = useWorkspaceStore();
 
   const isExpanded = expandedFolders.has(folder.id);
@@ -37,6 +42,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
   const notesInFolder = getNotesInFolder(folder.id, workspaceId);
 
   function handleContextMenu(e: React.MouseEvent) {
+    if (moveMode.active) return; // Don't open context menu in move mode
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY });
@@ -89,7 +95,6 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
   async function handleAddNote() {
     const title = prompt('Note title:');
     if (!title?.trim()) return;
-
     try {
       const note = await createNote(workspaceId, title, folder.id);
       addNote(note);
@@ -97,9 +102,40 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       alert(err.response?.data?.error || 'Failed to create note');
     }
   }
+  
+  async function handleMoveHere() {
+    if (!moveMode.active) return;
+    if (!canMoveTo(folder.id)) {
+      alert('Cannot move here (would create a cycle or same location)');
+      return;
+    }
+    
+    try {
+      if (moveMode.itemType === 'folder') {
+        // Move folder - get current name first
+        const folderToMove = useWorkspaceStore.getState().getFolderById(moveMode.itemId!);
+        if (!folderToMove) {
+          alert('Folder not found');
+          return;
+        }
+        await updateFolder(workspaceId, moveMode.itemId!, folderToMove.name, folder.id);
+        updateFolderInStore(moveMode.itemId!, { parent_id: folder.id });
+      } else if (moveMode.itemType === 'note') {
+        // Move note
+        await updateNote(workspaceId, moveMode.itemId!, { folder_id: folder.id });
+        updateNoteInStore(moveMode.itemId!, { folder_id: folder.id });
+      }
+      
+      exitMoveMode();
+      onUpdate();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to move item');
+    }
+  }
 
-  const menuItems: ContextMenuItem[] = [
+const menuItems: ContextMenuItem[] = [
     { label: 'Rename', onClick: () => setRenaming(true) },
+    { label: 'Move', onClick: () => enterMoveMode('folder', folder.id, workspaceId, folder.parent_id) },
     { label: 'Add Folder', onClick: handleAddSubfolder },
     { label: 'Add Note', onClick: handleAddNote },
     { label: 'Delete', onClick: handleDelete, danger: true },
@@ -110,24 +146,42 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       {/* Folder Header */}
       <div
         onContextMenu={handleContextMenu}
+        onClick={() => {
+          if (moveMode.active && moveMode.sourceWorkspaceId === workspaceId) {
+            handleMoveHere();
+          } else {
+            toggleFolder(folder.id);
+          }
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
           padding: '6px 12px',
           cursor: 'pointer',
           borderRadius: '6px',
-          backgroundColor: 'transparent',
-          transition: 'background-color 0.15s'
+          backgroundColor: moveMode.active && moveMode.sourceWorkspaceId === workspaceId && canMoveTo(folder.id) 
+            ? '#dbeafe' 
+            : 'transparent',
+          border: moveMode.active && moveMode.sourceWorkspaceId === workspaceId && canMoveTo(folder.id)
+            ? '2px solid #2563eb'
+            : '2px solid transparent',
+          transition: 'all 0.15s',
+          opacity: moveMode.active && moveMode.sourceWorkspaceId === workspaceId && !canMoveTo(folder.id)
+            ? 0.5
+            : 1
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f3f4f6';
+          if (!moveMode.active) {
+            e.currentTarget.style.backgroundColor = '#f3f4f6';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
+          if (!moveMode.active) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }
         }}
       >
         <span
-          onClick={() => toggleFolder(folder.id)}
           style={{ 
             marginRight: '8px',
             userSelect: 'none',
@@ -145,7 +199,6 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
         </span>
 
         <span
-          onClick={() => toggleFolder(folder.id)}
           style={{ marginRight: '8px' }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#9ca3af' }}>
@@ -155,7 +208,6 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
 
         {!renaming ? (
           <span
-            onClick={() => toggleFolder(folder.id)}
             style={{ 
               flex: 1,
               fontSize: '14px',

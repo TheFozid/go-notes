@@ -118,9 +118,18 @@ export async function createFolder(
 export async function updateFolder(
   workspaceId: number,
   folderId: number,
-  name: string
+  name: string,
+  parentId?: number | null,
+  targetWorkspaceId?: number
 ): Promise<void> {
-  await apiClient.put(`/workspaces/${workspaceId}/folders/${folderId}`, { name });
+  const body: any = { name };
+  if (parentId !== undefined) {
+    body.parent_id = parentId;
+  }
+  if (targetWorkspaceId !== undefined) {
+    body.workspace_id = targetWorkspaceId;
+  }
+  await apiClient.put(`/workspaces/${workspaceId}/folders/${folderId}`, body);
 }
 
 export async function deleteFolder(workspaceId: number, folderId: number): Promise<void> {

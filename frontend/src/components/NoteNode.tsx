@@ -18,11 +18,12 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
   const [renaming, setRenaming] = useState(false);
   const [newTitle, setNewTitle] = useState(note.title);
   const [noteColor, setNoteColor] = useState(note.color);
-
   const {
     updateNote: updateNoteInStore,
     setSelectedNote,
     selectedNoteId,
+    moveMode,
+    enterMoveMode,
   } = useWorkspaceStore();
   
   useEffect(() => {
@@ -36,16 +37,18 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
 
   const isSelected = selectedNoteId === note.id;
 
+  function handleClick() {
+    if (moveMode.active) return; // Don't select note in move mode
+    setSelectedNote(note.id);
+  }
+
   function handleContextMenu(e: React.MouseEvent) {
+    if (moveMode.active) return; // Don't open context menu in move mode
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY });
   }
-
-  function handleClick() {
-    setSelectedNote(note.id);
-  }
-
+  
   async function handleRename() {
     if (!newTitle.trim() || newTitle === note.title) {
       setRenaming(false);
@@ -76,6 +79,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
 
   const menuItems: ContextMenuItem[] = [
     { label: 'Rename', onClick: () => setRenaming(true) },
+    { label: 'Move', onClick: () => enterMoveMode('note', note.id, workspaceId, note.folder_id) },
     { label: 'Trash', onClick: handleTrash, danger: true },
   ];
 
@@ -91,19 +95,22 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
           display: 'flex',
           alignItems: 'center',
           padding: '6px 12px',
-          cursor: 'pointer',
+          cursor: moveMode.active ? 'default' : 'pointer',
           borderRadius: '6px',
           backgroundColor: isSelected ? '#eff6ff' : 'transparent',
           borderLeft: `3px solid ${noteColor}`,
-          transition: 'background-color 0.15s'
+          transition: 'background-color 0.15s',
+          opacity: moveMode.active && moveMode.itemType === 'note' && moveMode.itemId === note.id
+            ? 0.5
+            : 1
         }}
         onMouseEnter={(e) => {
-          if (!isSelected) {
+          if (!isSelected && !moveMode.active) {
             e.currentTarget.style.backgroundColor = '#f9fafb';
           }
         }}
         onMouseLeave={(e) => {
-          if (!isSelected) {
+          if (!isSelected && !moveMode.active) {
             e.currentTarget.style.backgroundColor = 'transparent';
           }
         }}

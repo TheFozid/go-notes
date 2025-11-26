@@ -11,10 +11,11 @@ export default function WorkspaceTree() {
   const [creatingWorkspace, setCreatingWorkspace] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [error, setError] = useState<string | null>(null);
-
   const {
     workspaces,
     addWorkspace,
+    moveMode,
+    exitMoveMode,
   } = useWorkspaceStore();
 
   async function handleCreateWorkspace(e: React.FormEvent) {
@@ -33,6 +34,66 @@ export default function WorkspaceTree() {
 
   return (
     <div style={{ padding: '16px' }}>
+      {/* Move Mode Banner */}
+      {moveMode.active && (
+        <div style={{
+          padding: '12px',
+          marginBottom: '16px',
+          backgroundColor: '#dbeafe',
+          border: '2px solid #2563eb',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px'
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ 
+              fontWeight: 600, 
+              fontSize: '14px', 
+              color: '#1e40af', 
+              marginBottom: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                drive_file_move
+              </span>
+              Moving {moveMode.itemType}
+            </div>
+            <div style={{ fontSize: '13px', color: '#3b82f6' }}>
+              Click a folder to move here, or workspace title to move to root
+            </div>
+          </div>
+          <button
+            onClick={exitMoveMode}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'background-color 0.15s',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+              close
+            </span>
+            Cancel
+          </button>
+        </div>
+      )}
+      
       {/* Create Workspace Button */}
       {!creatingWorkspace ? (
         <button

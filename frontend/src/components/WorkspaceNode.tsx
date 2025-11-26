@@ -7,6 +7,8 @@ import {
   removeWorkspaceMember,
   createFolder,
   createNote,
+  updateFolder,
+  updateNote,
   type Workspace,
 } from '../api/workspaces';
 import ContextMenu, { type ContextMenuItem } from './ContextMenu';
@@ -25,7 +27,6 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
   const [showManageAccess, setShowManageAccess] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(workspace.name);
-
   const user = useAuthStore((state) => state.user);
   const {
     expandedWorkspaces,
@@ -36,6 +37,11 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
     addNote,
     getRootFolders,
     getNotesInFolder,
+    moveMode,
+    exitMoveMode,
+    canMoveTo,
+    updateFolder: updateFolderInStore,
+    updateNote: updateNoteInStore,
   } = useWorkspaceStore();
 
   const isExpanded = expandedWorkspaces.has(workspace.id);
@@ -44,6 +50,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
   const rootNotes = getNotesInFolder(null, workspace.id);
 
   function handleContextMenu(e: React.MouseEvent) {
+    if (moveMode.active) return; // Don't open context menu in move mode
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY });
@@ -108,12 +115,39 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
   async function handleAddNote() {
     const title = prompt('Note title:');
     if (!title?.trim()) return;
-
     try {
       const note = await createNote(workspace.id, title, null);
       addNote(note);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to create note');
+    }
+  }
+  
+  async function handleMoveToRoot() {
+    if (!moveMode.active || moveMode.sourceWorkspaceId !== workspace.id) return;
+    if (!canMoveTo(null)) {
+      alert('Cannot move here (same location)');
+      return;
+    }
+    
+    try {
+      if (moveMode.itemType === 'folder') {
+        const folderToMove = useWorkspaceStore.getState().getFolderById(moveMode.itemId!);
+        if (!folderToMove) {
+          alert('Folder not found');
+          return;
+        }
+        await updateFolder(workspace.id, moveMode.itemId!, folderToMove.name, null);
+        updateFolderInStore(moveMode.itemId!, { parent_id: null });
+      } else if (moveMode.itemType === 'note') {
+        await updateNote(workspace.id, moveMode.itemId!, { folder_id: null });
+        updateNoteInStore(moveMode.itemId!, { folder_id: null });
+      }
+      
+      exitMoveMode();
+      onUpdate();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to move item');
     }
   }
 
@@ -138,24 +172,39 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       {/* Workspace Header */}
       <div
         onContextMenu={handleContextMenu}
+        onClick={() => {
+          if (moveMode.active && moveMode.sourceWorkspaceId === workspace.id) {
+            handleMoveToRoot();
+          } else {
+            toggleWorkspace(workspace.id);
+          }
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
           padding: '8px 12px',
           cursor: 'pointer',
           borderRadius: '6px',
-          backgroundColor: 'transparent',
-          transition: 'background-color 0.15s'
+          backgroundColor: moveMode.active && moveMode.sourceWorkspaceId === workspace.id && canMoveTo(null)
+            ? '#dbeafe'
+            : 'transparent',
+          border: moveMode.active && moveMode.sourceWorkspaceId === workspace.id && canMoveTo(null)
+            ? '2px solid #2563eb'
+            : '2px solid transparent',
+          transition: 'all 0.15s'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f3f4f6';
+          if (!moveMode.active) {
+            e.currentTarget.style.backgroundColor = '#f3f4f6';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
+          if (!moveMode.active) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }
         }}
       >
         <span
-          onClick={() => toggleWorkspace(workspace.id)}
           style={{ 
             marginRight: '8px',
             userSelect: 'none',
@@ -173,7 +222,6 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
         </span>
 
         <span
-          onClick={() => toggleWorkspace(workspace.id)}
           style={{ marginRight: '8px' }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#6b7280' }}>
@@ -183,7 +231,6 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
 
         {!renaming ? (
           <span
-            onClick={() => toggleWorkspace(workspace.id)}
             style={{ 
               flex: 1,
               fontWeight: 600,
