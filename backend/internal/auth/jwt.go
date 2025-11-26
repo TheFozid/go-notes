@@ -3,6 +3,7 @@ package auth
 import (
 	"os"
 	"time"
+	"log"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -11,7 +12,7 @@ var jwtSecret []byte
 func init() {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		secret = "your-very-secret-key" // Fallback for development
+        log.Fatal("JWT_SECRET environment variable is required")
 	}
 	jwtSecret = []byte(secret)
 }

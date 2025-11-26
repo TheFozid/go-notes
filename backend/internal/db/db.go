@@ -663,32 +663,30 @@ func ListTagsForWorkspace(db *sql.DB, workspaceID int) ([]Tag, error) {
 
 // UpdateNoteMetadata updates note metadata fields (NOT content - preserves granular edit system)
 func UpdateNoteMetadata(db *sql.DB, noteID int, updates map[string]interface{}) error {
-	// Build dynamic UPDATE query for allowed metadata fields only
-	allowedFields := map[string]bool{
-		"title":        true,
-		"folder_id":    true,
-		"workspace_id": true,
-		"color":        true,
-	}
-	
-	query := "UPDATE notes SET updated_at=CURRENT_TIMESTAMP"
-	args := []interface{}{}
-	argIdx := 1
-	
-	for field, value := range updates {
-		if !allowedFields[field] {
-			continue // Skip disallowed fields (like content)
-		}
-		query += fmt.Sprintf(", %s=$%d", field, argIdx)
-		args = append(args, value)
-		argIdx++
-	}
-	
-	query += fmt.Sprintf(" WHERE id=$%d", argIdx)
-	args = append(args, noteID)
-	
-	_, err := db.Exec(query, args...)
-	return err
+    allowedFields := map[string]bool{
+        "title": true, "folder_id": true, "workspace_id": true, "color": true,
+    }
+    
+    setClauses := []string{"updated_at=CURRENT_TIMESTAMP"}
+    args := []interface{}{}
+    argIdx := 1
+    
+    for field, value := range updates {
+        if !allowedFields[field] {
+            continue
+        }
+        // Safe because field is validated against whitelist
+        setClauses = append(setClauses, fmt.Sprintf("%s=$%d", field, argIdx))
+        args = append(args, value)
+        argIdx++
+    }
+    
+    query := fmt.Sprintf("UPDATE notes SET %s WHERE id=$%d", 
+        strings.Join(setClauses, ", "), argIdx)
+    args = append(args, noteID)
+    
+    _, err := db.Exec(query, args...)
+    return err
 }
 
 // UpdateNoteSearchText updates the searchable plain text content
