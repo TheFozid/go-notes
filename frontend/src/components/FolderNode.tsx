@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
+import InputModal from './InputModal';
 import {
   updateFolder,
   deleteFolder,
@@ -19,8 +20,9 @@ interface FolderNodeProps {
 
 export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNodeProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const [renaming, setRenaming] = useState(false);
-  const [newName, setNewName] = useState(folder.name);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showAddSubfolderModal, setShowAddSubfolderModal] = useState(false);
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const {
     expandedFolders,
     toggleFolder,
@@ -48,21 +50,18 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
     setContextMenu({ x: e.clientX, y: e.clientY });
   }
 
-  async function handleRename() {
-    if (!newName.trim() || newName === folder.name) {
-      setRenaming(false);
-      setNewName(folder.name);
+  async function handleRename(newName: string) {
+    if (newName === folder.name) {
+      setShowRenameModal(false);
       return;
     }
 
     try {
       await updateFolder(workspaceId, folder.id, newName);
       updateFolderInStore(folder.id, { name: newName });
-      setRenaming(false);
+      setShowRenameModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to rename folder');
-      setNewName(folder.name);
-      setRenaming(false);
     }
   }
 
@@ -80,24 +79,21 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
     }
   }
 
-  async function handleAddSubfolder() {
-    const name = prompt('Subfolder name:');
-    if (!name?.trim()) return;
-
+  async function handleAddSubfolder(name: string) {
     try {
       const newFolder = await createFolder(workspaceId, name, folder.id);
       addFolder(newFolder);
+      setShowAddSubfolderModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to create subfolder');
     }
   }
 
-  async function handleAddNote() {
-    const title = prompt('Note title:');
-    if (!title?.trim()) return;
+  async function handleAddNote(title: string) {
     try {
       const note = await createNote(workspaceId, title, folder.id);
       addNote(note);
+      setShowAddNoteModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to create note');
     }
@@ -134,10 +130,10 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
   }
 
 const menuItems: ContextMenuItem[] = [
-    { label: 'Rename', onClick: () => setRenaming(true) },
+    { label: 'Rename', onClick: () => setShowRenameModal(true) },
     { label: 'Move', onClick: () => enterMoveMode('folder', folder.id, workspaceId, folder.parent_id) },
-    { label: 'Add Folder', onClick: handleAddSubfolder },
-    { label: 'Add Note', onClick: handleAddNote },
+    { label: 'Add Folder', onClick: () => setShowAddSubfolderModal(true) },
+    { label: 'Add Note', onClick: () => setShowAddNoteModal(true) },
     { label: 'Delete', onClick: handleDelete, danger: true },
   ];
 
@@ -206,42 +202,15 @@ const menuItems: ContextMenuItem[] = [
           </span>
         </span>
 
-        {!renaming ? (
-          <span
-            style={{ 
-              flex: 1,
-              fontSize: '14px',
-              color: '#374151'
-            }}
-          >
-            {folder.name}
-          </span>
-        ) : (
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') {
-                setRenaming(false);
-                setNewName(folder.name);
-              }
-            }}
-            autoFocus
-            style={{
-              flex: 1,
-              padding: '4px 8px',
-              border: '2px solid #2563eb',
-              borderRadius: '4px',
-              fontSize: '14px',
-              fontFamily: 'inherit',
-              outline: 'none'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        )}
+        <span
+          style={{ 
+            flex: 1,
+            fontSize: '14px',
+            color: '#374151'
+          }}
+        >
+          {folder.name}
+        </span>
       </div>
 
       {/* Folder Children */}
@@ -275,6 +244,37 @@ const menuItems: ContextMenuItem[] = [
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      {/* Rename Modal */}
+      <InputModal
+        isOpen={showRenameModal}
+        title="Rename Folder"
+        placeholder="Folder name"
+        defaultValue={folder.name}
+        confirmText="Rename"
+        onConfirm={handleRename}
+        onCancel={() => setShowRenameModal(false)}
+      />
+
+      {/* Add Subfolder Modal */}
+      <InputModal
+        isOpen={showAddSubfolderModal}
+        title="Create Subfolder"
+        placeholder="Subfolder name"
+        confirmText="Create"
+        onConfirm={handleAddSubfolder}
+        onCancel={() => setShowAddSubfolderModal(false)}
+      />
+
+      {/* Add Note Modal */}
+      <InputModal
+        isOpen={showAddNoteModal}
+        title="Create Note"
+        placeholder="Note title"
+        confirmText="Create"
+        onConfirm={handleAddNote}
+        onCancel={() => setShowAddNoteModal(false)}
+      />
     </div>
   );
 }

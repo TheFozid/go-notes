@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
+import InputModal from './InputModal';
 import {
   trashNote,
   updateNote,
@@ -15,8 +16,7 @@ interface NoteNodeProps {
 
 export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const [renaming, setRenaming] = useState(false);
-  const [newTitle, setNewTitle] = useState(note.title);
+  const [showRenameModal, setShowRenameModal] = useState(false);
   const [noteColor, setNoteColor] = useState(note.color);
   const {
     updateNote: updateNoteInStore,
@@ -26,10 +26,6 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
     enterMoveMode,
   } = useWorkspaceStore();
   
-  useEffect(() => {
-    setNewTitle(note.title);
-  }, [note.title]);
-
   // Update color when note.color changes
   useEffect(() => {
     setNoteColor(note.color);
@@ -49,21 +45,18 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
     setContextMenu({ x: e.clientX, y: e.clientY });
   }
   
-  async function handleRename() {
-    if (!newTitle.trim() || newTitle === note.title) {
-      setRenaming(false);
-      setNewTitle(note.title);
+  async function handleRename(newTitle: string) {
+    if (newTitle === note.title) {
+      setShowRenameModal(false);
       return;
     }
 
     try {
       await updateNote(workspaceId, note.id, { title: newTitle });
       updateNoteInStore(note.id, { title: newTitle });
-      setRenaming(false);
+      setShowRenameModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to rename note');
-      setNewTitle(note.title);
-      setRenaming(false);
     }
   }
 
@@ -78,7 +71,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
   }
 
   const menuItems: ContextMenuItem[] = [
-    { label: 'Rename', onClick: () => setRenaming(true) },
+    { label: 'Rename', onClick: () => setShowRenameModal(true) },
     { label: 'Move', onClick: () => enterMoveMode('note', note.id, workspaceId, note.folder_id) },
     { label: 'Trash', onClick: handleTrash, danger: true },
   ];
@@ -124,56 +117,29 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
           </span>
         </span>
 
-        {!renaming ? (
-          <span style={{ 
-            flex: 1,
-            fontSize: '14px',
-            color: isSelected ? '#111827' : '#4b5563',
-            fontWeight: isSelected ? 500 : 400,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {note.title}
-            </span>
-            {hasCustomColor && (
-              <span style={{
-                width: '16px',
-                height: '16px',
-                borderRadius: '4px',
-                backgroundColor: noteColor,
-                border: '1px solid #e5e7eb',
-                flexShrink: 0
-              }} title={`Note color: ${noteColor}`} />
-            )}
+        <span style={{ 
+          flex: 1,
+          fontSize: '14px',
+          color: isSelected ? '#111827' : '#4b5563',
+          fontWeight: isSelected ? 500 : 400,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {note.title}
           </span>
-        ) : (
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') {
-                setRenaming(false);
-                setNewTitle(note.title);
-              }
-            }}
-            autoFocus
-            style={{
-              flex: 1,
-              padding: '4px 8px',
-              border: '2px solid #2563eb',
+          {hasCustomColor && (
+            <span style={{
+              width: '16px',
+              height: '16px',
               borderRadius: '4px',
-              fontSize: '14px',
-              fontFamily: 'inherit',
-              outline: 'none'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        )}
+              backgroundColor: noteColor,
+              border: '1px solid #e5e7eb',
+              flexShrink: 0
+            }} title={`Note color: ${noteColor}`} />
+          )}
+        </span>
       </div>
 
       {contextMenu && (
@@ -184,6 +150,17 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
           onClose={() => setContextMenu(null)}
         />
       )}
+
+      {/* Rename Modal */}
+      <InputModal
+        isOpen={showRenameModal}
+        title="Rename Note"
+        placeholder="Note title"
+        defaultValue={note.title}
+        confirmText="Rename"
+        onConfirm={handleRename}
+        onCancel={() => setShowRenameModal(false)}
+      />
     </div>
   );
 }

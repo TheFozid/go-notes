@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
+import InputModal from './InputModal';
 import useAuthStore from '../store/authStore';
 import {
   updateWorkspace,
@@ -27,6 +28,8 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
   const [showManageAccess, setShowManageAccess] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(workspace.name);
+  const [showAddFolderModal, setShowAddFolderModal] = useState(false);
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const user = useAuthStore((state) => state.user);
   const {
     expandedWorkspaces,
@@ -100,24 +103,21 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
     }
   }
 
-  async function handleAddFolder() {
-    const name = prompt('Folder name:');
-    if (!name?.trim()) return;
-
+  async function handleAddFolder(name: string) {
     try {
       const folder = await createFolder(workspace.id, name, null);
       addFolder(folder);
+      setShowAddFolderModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to create folder');
     }
   }
 
-  async function handleAddNote() {
-    const title = prompt('Note title:');
-    if (!title?.trim()) return;
+  async function handleAddNote(title: string) {
     try {
       const note = await createNote(workspace.id, title, null);
       addNote(note);
+      setShowAddNoteModal(false);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to create note');
     }
@@ -153,15 +153,15 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
 
   const ownerMenuItems: ContextMenuItem[] = [
     { label: 'Rename', onClick: () => setRenaming(true) },
-    { label: 'Add Folder', onClick: handleAddFolder },
-    { label: 'Add Note', onClick: handleAddNote },
+    { label: 'Add Folder', onClick: () => setShowAddFolderModal(true) },
+    { label: 'Add Note', onClick: () => setShowAddNoteModal(true) },
     { label: 'Manage Access', onClick: () => setShowManageAccess(true) },
     { label: 'Delete', onClick: handleDelete, danger: true },
   ];
 
   const memberMenuItems: ContextMenuItem[] = [
-    { label: 'Add Folder', onClick: handleAddFolder },
-    { label: 'Add Note', onClick: handleAddNote },
+    { label: 'Add Folder', onClick: () => setShowAddFolderModal(true) },
+    { label: 'Add Note', onClick: () => setShowAddNoteModal(true) },
     { label: 'Leave Workspace', onClick: handleLeave, danger: true },
   ];
 
@@ -323,6 +323,26 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
           onUpdate={onUpdate}
         />
       )}
+
+      {/* Add Folder Modal */}
+      <InputModal
+        isOpen={showAddFolderModal}
+        title="Create Folder"
+        placeholder="Folder name"
+        confirmText="Create"
+        onConfirm={handleAddFolder}
+        onCancel={() => setShowAddFolderModal(false)}
+      />
+
+      {/* Add Note Modal */}
+      <InputModal
+        isOpen={showAddNoteModal}
+        title="Create Note"
+        placeholder="Note title"
+        confirmText="Create"
+        onConfirm={handleAddNote}
+        onCancel={() => setShowAddNoteModal(false)}
+      />
     </div>
   );
 }
