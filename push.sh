@@ -48,6 +48,8 @@ echo "🚀 Building & pushing backend multi-arch images..."
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --target backend \
+  --cache-from type=registry,ref="$IMAGE_BASE_BACKEND:buildcache" \
+  --cache-to type=registry,ref="$IMAGE_BASE_BACKEND:buildcache",mode=max \
   -t "$IMAGE_BASE_BACKEND:latest" \
   -t "$IMAGE_BASE_BACKEND:$VERSION" \
   -t "$IMAGE_BASE_BACKEND:$MAJOR.$MINOR" \
@@ -61,6 +63,8 @@ echo "🚀 Building & pushing yjs multi-arch images..."
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --target yjs \
+  --cache-from type=registry,ref="$IMAGE_BASE_YJS:buildcache" \
+  --cache-to type=registry,ref="$IMAGE_BASE_YJS:buildcache",mode=max \
   -t "$IMAGE_BASE_YJS:latest" \
   -t "$IMAGE_BASE_YJS:$VERSION" \
   -t "$IMAGE_BASE_YJS:$MAJOR.$MINOR" \

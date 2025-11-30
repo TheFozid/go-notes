@@ -244,5 +244,5 @@ export async function searchNotes(
   const response = await apiClient.get<Note[]>('/search', {
     params: { q: query, mode },
   });
-  return response.data;
+  return response.data || []; // Add fallback to empty array
 }
