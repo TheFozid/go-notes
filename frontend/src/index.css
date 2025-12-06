@@ -171,32 +171,27 @@ html, body, #root {
    QUILL TABLE-BETTER OVERRIDES
    ============================================ */
 
-/* Table toolbar popup */
-.qlbt-operation-menu {
+/* Table creation grid popup */
+.ql-table-select-container {
   z-index: 10000 !important;
+  position: fixed !important;
   background-color: white !important;
   border: 1px solid var(--gray-200) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  padding: 8px !important;
 }
 
-/* Table creation modal/dialog */
-.qlbt-col-tool,
-.qlbt-table-creator {
+/* Table operation menu (right-click context menu) */
+.ql-table-menu-item,
+.ql-table-operation-menu {
   z-index: 10000 !important;
   background-color: white !important;
-  border: 1px solid var(--gray-200) !important;
-  border-radius: var(--radius-md) !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Table context menu items */
-.qlbt-operation-menu-item:hover {
-  background-color: var(--gray-100) !important;
-}
-
-/* Table selection overlay */
-.qlbt-selection-line {
+/* Table selection styling */
+.ql-cell-selected::after, 
+.ql-cell-focused::after {
   z-index: 9999 !important;
 }
 
