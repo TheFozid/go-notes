@@ -4,10 +4,12 @@ import { QuillBinding } from 'y-quill';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import QuillCursors from 'quill-cursors';
+import QuillTableBetter from 'quill-table-better';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
 import { getNote, updateNoteSearchText } from '../api/workspaces';
 import 'quill/dist/quill.snow.css';
+import 'quill-table-better/dist/quill-table-better.css';
 import 'katex/dist/katex.min.css';
 import ColorPicker from './ColorPicker';
 import { updateNote } from '../api/workspaces';
@@ -15,6 +17,9 @@ import TagInput from './TagInput';
 import { setNoteTags } from '../api/workspaces';
 
 Quill.register('modules/cursors', QuillCursors);
+Quill.register({
+  'modules/table-better': QuillTableBetter
+}, true);
 
 function QuillEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,6 +95,7 @@ function QuillEditor() {
           <button class="ql-image"></button>
           <button class="ql-video"></button>
           <button class="ql-formula"></button>
+          <button class="ql-table-better"></button>
         </span>
         <span class="ql-formats">
           <button class="ql-clean"></button>
@@ -104,6 +110,15 @@ function QuillEditor() {
         cursors: true,
         history: {
           userOnly: true
+        },
+        table: false, // Disable default table module
+        'table-better': {
+          language: 'en_US',
+          menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+          toolbarTable: true
+        },
+        keyboard: {
+          bindings: QuillTableBetter.keyboardBindings
         }
       },
       placeholder: 'Start typing...'
