@@ -41,16 +41,37 @@
   color: #888;
 }
 
-/* Custom Quill Checklist Overrides */
+/* Custom Quill Checklist Overrides - Large Hit Area */
 .ql-editor li[data-list="checked"],
 .ql-editor li[data-list="unchecked"] {
-  padding-left: 1.8em; /* Increase padding to fit larger checkbox */
-  padding-bottom: 0.5em; /* Add breathing room between items */
+  padding-left: 2.5em; /* Increased padding to accommodate wider checkbox */
+  padding-bottom: 0.5em; /* Breathing room */
+  position: relative;
 }
 
 .ql-editor li[data-list="checked"]::before,
 .ql-editor li[data-list="unchecked"]::before {
-  font-size: 1.5em; /* Enlarge the checkbox symbol */
-  line-height: 1em; /* Center vertically */
-  color: #444; /* Darker color for better visibility */
+  content: '\2610'; /* Enforce the square box character */
+  display: inline-block;
+  text-align: center;
+  
+  /* Size Controls */
+  font-size: 2em; /* Significantly larger font */
+  width: 1.4em; /* Width of the checkbox area */
+  height: 1.4em;
+  line-height: 1.1em; /* Vertical centering tweak */
+  
+  /* Positioning */
+  margin-left: -1.6em; /* Pull the checkbox to the left of the text */
+  margin-right: 0.2em; /* Space between box and text */
+  
+  /* Appearance */
+  color: #333; /* Darker, clearer visibility */
+  font-weight: 900; /* Thicker lines */
+  cursor: pointer; /* Ensure pointer cursor on hover */
+}
+
+/* Specific style for checked state */
+.ql-editor li[data-list="checked"]::before {
+  content: '\2611'; /* Checked box character */
 }
