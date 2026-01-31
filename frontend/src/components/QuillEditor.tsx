@@ -602,6 +602,35 @@ function QuillEditor() {
           zIndex: 1
         }}
       />
+      
+      {/* Inject styles here to ensure they override Quill's library styles */}
+      <style>{`
+        .ql-editor li[data-list="checked"],
+        .ql-editor li[data-list="unchecked"] {
+          padding-left: 2.5em !important;
+          padding-bottom: 0.5em !important;
+        }
+
+        .ql-editor li[data-list="checked"]::before,
+        .ql-editor li[data-list="unchecked"]::before {
+          content: '\\2610' !important;
+          display: inline-block !important;
+          text-align: center !important;
+          font-size: 2.2em !important;
+          width: 1.5em !important;
+          height: 1.5em !important;
+          line-height: 1.1em !important;
+          margin-left: -1.6em !important; 
+          margin-right: 0.3em !important;
+          color: #000000 !important;
+          font-weight: 900 !important;
+          cursor: pointer !important;
+        }
+
+        .ql-editor li[data-list="checked"]::before {
+          content: '\\2611' !important;
+        }
+      `}</style>
     </div>
   );
 }
