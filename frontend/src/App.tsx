@@ -17,11 +17,81 @@ const LAST_NOTE_KEY = 'go-notes-last-selected-note';
 function MainApp() {
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(280);
+  const [rightWidth, setRightWidth] = useState(320);
   const [dataLoaded, setDataLoaded] = useState(false);
+  
+  // Resizing state
+  const [resizing, setResizing] = useState<'left' | 'right' | null>(null);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartLeftWidth, setDragStartLeftWidth] = useState(0);
+  const [dragStartRightWidth, setDragStartRightWidth] = useState(0);
+
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const selectedNoteId = useWorkspaceStore((state) => state.selectedNoteId);
   const getNotePath = useWorkspaceStore((state) => state.getNotePath);
   const { setWorkspaces, setFolders, setNotes, setSelectedNote, toggleWorkspace, toggleFolder } = useWorkspaceStore();
+
+  // Handle panel resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizing) return;
+
+      const deltaX = e.clientX - dragStartX;
+
+      if (resizing === 'left') {
+        const newWidth = dragStartLeftWidth + deltaX;
+        // Constrain width between 150px and 600px
+        if (newWidth >= 150 && newWidth <= 600) {
+          setLeftWidth(newWidth);
+        }
+      } else if (resizing === 'right') {
+        const newWidth = dragStartRightWidth - deltaX;
+        // Constrain width between 250px and 600px
+        if (newWidth >= 250 && newWidth <= 600) {
+          setRightWidth(newWidth);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (resizing) {
+        setResizing(null);
+        document.body.style.cursor = '';
+      }
+    };
+
+    if (resizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      // Disable text selection during drag
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [resizing, dragStartX, dragStartLeftWidth, dragStartRightWidth]);
+
+  const startDragLeft = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setResizing('left');
+    setDragStartX(e.clientX);
+    setDragStartLeftWidth(leftWidth);
+  };
+
+  const startDragRight = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setResizing('right');
+    setDragStartX(e.clientX);
+    setDragStartRightWidth(rightWidth);
+  };
 
   // Load data and restore last note on mount
   useEffect(() => {
@@ -269,12 +339,13 @@ console.log('[MainApp] Note restored:', noteId);
         flex: 1,
         display: 'flex',
         overflow: 'hidden',
-        position: 'relative'
+        position: 'relative',
+        userSelect: resizing ? 'none' : 'auto'
       }}>
         {/* Left Panel */}
         {leftPanelOpen && (
           <div style={{ 
-            width: '280px',
+            width: leftWidth,
             backgroundColor: '#f9fafb',
             borderRight: '1px solid #e5e7eb',
             overflowY: 'auto',
@@ -282,6 +353,23 @@ console.log('[MainApp] Note restored:', noteId);
           }}>
             <WorkspaceTree />
           </div>
+        )}
+
+        {/* Left Drag Handle */}
+        {leftPanelOpen && (
+          <div
+            onMouseDown={startDragLeft}
+            style={{
+              width: '5px',
+              cursor: 'col-resize',
+              backgroundColor: '#e5e7eb',
+              flexShrink: 0,
+              zIndex: 10,
+              transition: resizing ? 'none' : 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#d1d5db'; }}
+            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
+          />
         )}
 
         {/* Main Content */}
@@ -294,10 +382,27 @@ console.log('[MainApp] Note restored:', noteId);
           <QuillEditor />
         </div>
 
+        {/* Right Drag Handle */}
+        {rightPanelOpen && (
+          <div
+            onMouseDown={startDragRight}
+            style={{
+              width: '5px',
+              cursor: 'col-resize',
+              backgroundColor: '#e5e7eb',
+              flexShrink: 0,
+              zIndex: 10,
+              transition: resizing ? 'none' : 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#d1d5db'; }}
+            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
+          />
+        )}
+
         {/* Right Panel */}
         {rightPanelOpen && (
           <div style={{ 
-            width: '320px',
+            width: rightWidth,
             backgroundColor: '#f9fafb',
             borderLeft: '1px solid #e5e7eb',
             padding: '16px',
@@ -306,6 +411,7 @@ console.log('[MainApp] Note restored:', noteId);
           }}>
             <UserManagement />
           </div>
+        )}
         )}
       </div>
     </div>
