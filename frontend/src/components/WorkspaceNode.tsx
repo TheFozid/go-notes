@@ -183,16 +183,16 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
           cursor: 'pointer',
           borderRadius: '6px',
           backgroundColor: moveMode.active && moveMode.sourceWorkspaceId === workspace.id && canMoveTo(null)
-            ? '#dbeafe'
+            ? 'var(--bg-selected)'
             : 'transparent',
           border: moveMode.active && moveMode.sourceWorkspaceId === workspace.id && canMoveTo(null)
-            ? '2px solid #2563eb'
+            ? '2px solid var(--primary)'
             : '2px solid transparent',
           transition: 'all 0.15s'
         }}
         onMouseEnter={(e) => {
           if (!moveMode.active) {
-            e.currentTarget.style.backgroundColor = '#f3f4f6';
+            e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
           }
         }}
         onMouseLeave={(e) => {
@@ -205,7 +205,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
           style={{ 
             marginRight: '8px',
             userSelect: 'none',
-            color: '#6b7280',
+            color: 'var(--text-secondary)',
             fontSize: '12px',
             width: '16px',
             display: 'flex',
@@ -221,7 +221,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
         <span
           style={{ marginRight: '8px' }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#6b7280' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--text-secondary)' }}>
             {isExpanded ? 'menu_book' : 'book_5'}
           </span>
         </span>
@@ -232,7 +232,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
               flex: 1,
               fontWeight: 600,
               fontSize: '14px',
-              color: '#111827',
+              color: 'var(--text-main)',
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
@@ -243,7 +243,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
               className="material-symbols-outlined" 
               style={{ 
                 fontSize: '16px',
-                color: isOwner ? '#f59e0b' : '#6b7280'
+                color: isOwner ? 'var(--warning)' : 'var(--text-secondary)'
               }}
               title={isOwner ? 'Owner' : 'Member'}
             >

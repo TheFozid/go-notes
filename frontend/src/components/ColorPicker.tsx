@@ -48,7 +48,7 @@ function ColorPicker({ currentColor, onColorChange }: ColorPickerProps) {
         style={{
           width: '36px',
           height: '36px',
-          border: '2px solid #e5e7eb',
+          border: '2px solid var(--border-main)',
           borderRadius: '8px',
           backgroundColor: currentColor,
           cursor: 'pointer',
@@ -84,8 +84,8 @@ function ColorPicker({ currentColor, onColorChange }: ColorPickerProps) {
             position: 'fixed',
             top: pickerRef.current ? pickerRef.current.getBoundingClientRect().bottom + 8 : 0,
             right: pickerRef.current ? window.innerWidth - pickerRef.current.getBoundingClientRect().right : 0,
-            backgroundColor: '#ffffff',
-            border: '1px solid #e5e7eb',
+            backgroundColor: 'var(--bg-panel)',
+            border: '1px solid var(--border-main)',
             borderRadius: '12px',
             padding: '12px',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -107,7 +107,7 @@ function ColorPicker({ currentColor, onColorChange }: ColorPickerProps) {
               style={{
                 width: '36px',
                 height: '36px',
-                border: currentColor === color ? '3px solid #2563eb' : '2px solid #e5e7eb',
+                border: currentColor === color ? '3px solid var(--primary)' : '2px solid var(--border-main)',
                 borderRadius: '8px',
                 backgroundColor: color,
                 cursor: 'pointer',

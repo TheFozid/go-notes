@@ -155,10 +155,10 @@ const menuItems: ContextMenuItem[] = [
           cursor: 'pointer',
           borderRadius: '6px',
           backgroundColor: moveMode.active && moveMode.sourceWorkspaceId === workspaceId && canMoveTo(folder.id) 
-            ? '#dbeafe' 
+            ? 'var(--bg-selected)' 
             : 'transparent',
           border: moveMode.active && moveMode.sourceWorkspaceId === workspaceId && canMoveTo(folder.id)
-            ? '2px solid #2563eb'
+            ? '2px solid var(--primary)'
             : '2px solid transparent',
           transition: 'all 0.15s',
           opacity: moveMode.active && moveMode.sourceWorkspaceId === workspaceId && !canMoveTo(folder.id)
@@ -167,7 +167,7 @@ const menuItems: ContextMenuItem[] = [
         }}
         onMouseEnter={(e) => {
           if (!moveMode.active) {
-            e.currentTarget.style.backgroundColor = '#f3f4f6';
+            e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
           }
         }}
         onMouseLeave={(e) => {
@@ -180,7 +180,7 @@ const menuItems: ContextMenuItem[] = [
           style={{ 
             marginRight: '8px',
             userSelect: 'none',
-            color: '#6b7280',
+            color: 'var(--text-secondary)',
             fontSize: '12px',
             width: '16px',
             display: 'flex',
@@ -196,7 +196,7 @@ const menuItems: ContextMenuItem[] = [
         <span
           style={{ marginRight: '8px' }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#9ca3af' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
             {isExpanded ? 'folder_open' : 'folder'}
           </span>
         </span>
@@ -205,7 +205,7 @@ const menuItems: ContextMenuItem[] = [
           style={{ 
             flex: 1,
             fontSize: '14px',
-            color: '#374151'
+            color: 'var(--text-main)'
           }}
         >
           {folder.name}

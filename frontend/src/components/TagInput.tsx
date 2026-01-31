@@ -60,37 +60,37 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
         onClick={() => setIsOpen(!isOpen)}
         style={{
           padding: '8px 14px',
-          border: '1px solid #e5e7eb',
+          border: '1px solid var(--border-main)',
           borderRadius: '8px',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-main)',
           cursor: 'pointer',
           fontSize: '14px',
           fontWeight: 500,
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          color: '#374151',
+          color: 'var(--text-main)',
           transition: 'all 0.15s',
           boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = '#d1d5db';
-          e.currentTarget.style.backgroundColor = '#f9fafb';
+          e.currentTarget.style.borderColor = 'var(--border-hover)';
+          e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = '#e5e7eb';
-          e.currentTarget.style.backgroundColor = '#ffffff';
+          e.currentTarget.style.borderColor = 'var(--border-main)';
+          e.currentTarget.style.backgroundColor = 'var(--bg-main)';
         }}
         title="Manage tags"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#6b7280' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
           label
         </span>
         <span>Tags</span>
         {currentTags.length > 0 && (
           <span style={{
-            backgroundColor: '#dbeafe',
-            color: '#2563eb',
+            backgroundColor: 'var(--bg-selected)',
+            color: 'var(--primary)',
             fontSize: '12px',
             fontWeight: 600,
             padding: '2px 6px',
@@ -111,8 +111,8 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
             position: 'fixed',
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
             left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
-            backgroundColor: '#ffffff',
-            border: '1px solid #e5e7eb',
+            backgroundColor: 'var(--bg-panel)',
+            border: '1px solid var(--border-main)',
             borderRadius: '12px',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             zIndex: 1001,
@@ -131,19 +131,21 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
               style={{
                 flex: 1,
                 padding: '8px 12px',
-                border: '1px solid #d1d5db',
+                border: '1px solid var(--border-main)',
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontFamily: 'inherit',
                 outline: 'none',
-                transition: 'all 0.15s'
+                transition: 'all 0.15s',
+                backgroundColor: 'var(--bg-main)',
+                color: 'var(--text-main)'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#2563eb';
+                e.currentTarget.style.borderColor = 'var(--primary)';
                 e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#d1d5db';
+                e.currentTarget.style.borderColor = 'var(--border-main)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
               autoFocus
@@ -154,7 +156,7 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
                 padding: '8px 16px',
                 border: 'none',
                 borderRadius: '8px',
-                backgroundColor: '#2563eb',
+                backgroundColor: 'var(--primary)',
                 color: 'white',
                 cursor: 'pointer',
                 fontSize: '14px',
@@ -164,8 +166,8 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
                 alignItems: 'center',
                 gap: '4px'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
               title="Add tag"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
@@ -201,26 +203,26 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
                     padding: '8px 12px',
                     borderRadius: '8px',
                     marginBottom: '6px',
-                    backgroundColor: '#f9fafb',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: 'var(--bg-hover)',
+                    border: '1px solid var(--border-main)',
                     transition: 'all 0.15s'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-selected)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
                   }}
                 >
                   <span style={{ 
                     fontSize: '14px',
-                    color: '#374151',
+                    color: 'var(--text-main)',
                     fontWeight: 500,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
                   }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#9ca3af' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-tertiary)' }}>
                       label
                     </span>
                     {tag}
