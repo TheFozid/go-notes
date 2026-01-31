@@ -603,29 +603,39 @@ function QuillEditor() {
         }}
       />
       
-      {/* Inject styles to fix checklist sizing and clicking */}
+      {/* Inject styles to fix checklist sizing, clicking and remove duplicates */}
       <style>{`
-        /* Reset default bullets to prevent 'double' checkbox effect */
+        /* 1. Reset the LI element completely */
         .ql-editor li[data-list="checked"],
         .ql-editor li[data-list="unchecked"] {
-          list-style-type: none !important; /* Remove browser default bullet */
-          padding-left: 2.2em !important; /* Space for the checkbox */
+          /* Kill native bullets */
+          list-style-type: none !important;
+          /* Kill potential background icons */
+          background-image: none !important;
+          /* Reset Positioning */
+          padding-left: 2.2em !important; 
           position: relative !important;
-          padding-top: 0.25em !important;
-          padding-bottom: 0.25em !important;
+          padding-top: 0.3em !important;
+          padding-bottom: 0.3em !important;
         }
 
-        /* The Custom Checkbox */
+        /* 2. Explicitly hide the browser marker (::marker) */
+        .ql-editor li[data-list="checked"]::marker,
+        .ql-editor li[data-list="unchecked"]::marker {
+          content: "" !important;
+        }
+
+        /* 3. The Custom Checkbox */
         .ql-editor li[data-list="checked"]::before,
         .ql-editor li[data-list="unchecked"]::before {
-          content: '\\2610' !important; /* Unicode Box */
-          position: absolute !important; /* Take out of flow to control position */
-          left: 0 !important; /* Pin to the left edge */
+          content: '\\2610' !important;
+          position: absolute !important;
+          left: 0 !important;
           top: 50% !important;
-          transform: translateY(-50%) !important; /* Vertically center */
+          transform: translateY(-50%) !important;
           
-          /* Size Controls - Moderate size to fit Quill's click zone */
-          font-size: 1.5em !important; /* Reduced from 2.2em */
+          /* Size */
+          font-size: 1.5em !important;
           line-height: 1em !important;
           
           /* Appearance */
@@ -633,11 +643,14 @@ function QuillEditor() {
           cursor: pointer !important;
           display: inline-block !important;
           font-weight: 900 !important;
+          
+          /* Ensure no background from inheritance */
+          background-image: none !important;
         }
 
-        /* Checked State */
+        /* 4. Checked State */
         .ql-editor li[data-list="checked"]::before {
-          content: '\\2611' !important; /* Unicode Checked Box */
+          content: '\\2611' !important;
         }
       `}</style>
     </div>
