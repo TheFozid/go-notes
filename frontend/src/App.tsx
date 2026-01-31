@@ -13,6 +13,21 @@ import { getWorkspaces, getFolders, getNotes } from './api/workspaces';
 
 const LAST_NOTE_KEY = 'go-notes-last-selected-note';
 
+// Helper for variable string consistency
+const VARS = {
+  bgMain: 'var(--bg-main)',
+  bgPanel: 'var(--bg-panel)',
+  bgHover: 'var(--bg-hover)',
+  border: 'var(--border-main)',
+  borderHover: 'var(--border-hover)',
+  textMain: 'var(--text-main)',
+  textSecondary: 'var(--text-secondary)',
+  textTertiary: 'var(--text-tertiary)',
+  danger: '#ef4444',
+  dangerHover: '#dc2626',
+  dangerLight: '#fee2e2',
+};
+
 // Main app layout
 function MainApp() {
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
@@ -187,14 +202,15 @@ console.log('[MainApp] Note restored:', noteId);
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      backgroundColor: '#ffffff'
+      backgroundColor: VARS.bgMain,
+      color: VARS.textMain
     }}>
       {/* Modern Top Bar */}
       <div style={{ 
         height: '56px',
-        backgroundColor: '#ffffff',
+        backgroundColor: VARS.bgMain,
         padding: '0 16px',
-        borderBottom: '1px solid #e5e7eb',
+        borderBottom: `1px solid ${VARS.border}`,
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
@@ -210,17 +226,17 @@ console.log('[MainApp] Note restored:', noteId);
             padding: '6px',
             display: 'flex',
             alignItems: 'center',
-            color: '#6b7280',
+            color: VARS.textSecondary,
             borderRadius: '6px',
             transition: 'all 0.15s'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f3f4f6';
-            e.currentTarget.style.color = '#374151';
+            e.currentTarget.style.backgroundColor = VARS.bgHover;
+            e.currentTarget.style.color = VARS.textMain;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#6b7280';
+            e.currentTarget.style.color = VARS.textSecondary;
           }}
           title="Toggle left panel"
         >
@@ -248,7 +264,7 @@ console.log('[MainApp] Note restored:', noteId);
                 maxWidth: index === pathParts.length - 1 ? 'none' : '200px'
               }}>
                 <span style={{
-                  color: index === pathParts.length - 1 ? '#111827' : '#6b7280',
+                  color: index === pathParts.length - 1 ? VARS.textMain : VARS.textSecondary,
                   fontWeight: index === pathParts.length - 1 ? 600 : 400,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -259,7 +275,7 @@ console.log('[MainApp] Note restored:', noteId);
                 {index < pathParts.length - 1 && (
                   <span className="material-symbols-outlined" style={{ 
                     fontSize: '16px',
-                    color: '#d1d5db',
+                    color: VARS.textTertiary,
                     flexShrink: 0
                   }}>
                     chevron_right
@@ -273,7 +289,7 @@ console.log('[MainApp] Note restored:', noteId);
             flex: 1,
             fontSize: '16px',
             fontWeight: 600,
-            color: '#111827',
+            color: VARS.textMain,
             letterSpacing: '-0.01em'
           }}>
             go-notes
@@ -291,17 +307,17 @@ console.log('[MainApp] Note restored:', noteId);
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
-              color: '#6b7280',
+              color: VARS.textSecondary,
               borderRadius: '6px',
               transition: 'all 0.15s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
+              e.currentTarget.style.backgroundColor = VARS.bgHover;
+              e.currentTarget.style.color = VARS.textMain;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.color = VARS.textSecondary;
             }}
             title="Toggle right panel (User Management)"
           >
@@ -317,12 +333,12 @@ console.log('[MainApp] Note restored:', noteId);
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
-              color: '#ef4444',
+              color: VARS.danger,
               borderRadius: '6px',
               transition: 'all 0.15s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#fee2e2';
+              e.currentTarget.style.backgroundColor = VARS.dangerLight;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
@@ -346,8 +362,8 @@ console.log('[MainApp] Note restored:', noteId);
         {leftPanelOpen && (
           <div style={{ 
             width: leftWidth,
-            backgroundColor: '#f9fafb',
-            borderRight: '1px solid #e5e7eb',
+            backgroundColor: VARS.bgPanel,
+            borderRight: `1px solid ${VARS.border}`,
             overflowY: 'auto',
             flexShrink: 0
           }}>
@@ -362,13 +378,13 @@ console.log('[MainApp] Note restored:', noteId);
             style={{
               width: '5px',
               cursor: 'col-resize',
-              backgroundColor: '#e5e7eb',
+              backgroundColor: VARS.border,
               flexShrink: 0,
               zIndex: 10,
               transition: resizing ? 'none' : 'background-color 0.2s',
             }}
-            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#d1d5db'; }}
-            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
+            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.borderHover; }}
+            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.border; }}
           />
         )}
 
@@ -377,7 +393,7 @@ console.log('[MainApp] Note restored:', noteId);
           flex: 1,
           overflowY: 'auto',
           position: 'relative',
-          backgroundColor: '#ffffff'
+          backgroundColor: VARS.bgMain
         }}>
           <QuillEditor />
         </div>
@@ -389,13 +405,13 @@ console.log('[MainApp] Note restored:', noteId);
             style={{
               width: '5px',
               cursor: 'col-resize',
-              backgroundColor: '#e5e7eb',
+              backgroundColor: VARS.border,
               flexShrink: 0,
               zIndex: 10,
               transition: resizing ? 'none' : 'background-color 0.2s',
             }}
-            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#d1d5db'; }}
-            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
+            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.borderHover; }}
+            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.border; }}
           />
         )}
 
@@ -403,8 +419,8 @@ console.log('[MainApp] Note restored:', noteId);
         {rightPanelOpen && (
           <div style={{ 
             width: rightWidth,
-            backgroundColor: '#f9fafb',
-            borderLeft: '1px solid #e5e7eb',
+            backgroundColor: VARS.bgPanel,
+            borderLeft: `1px solid ${VARS.border}`,
             padding: '16px',
             overflowY: 'auto',
             flexShrink: 0

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser, type User } from '../api/users';
 import useAuthStore from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 
 type Tab = 'account' | 'users';
 
@@ -30,6 +31,7 @@ export default function UserManagement() {
   const setAuth = useAuthStore((state) => state.setAuth);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const token = useAuthStore((state) => state.token);
+  const { isDark, toggleTheme } = useThemeStore();
 
   useEffect(() => {
     if (activeTab === 'users' && user?.is_admin) {
@@ -215,6 +217,52 @@ export default function UserManagement() {
       {/* Account Tab */}
       {activeTab === 'account' && user && (
         <div>
+          {/* Theme Toggle */}
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'var(--bg-panel)',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '1px solid var(--border-main)'
+          }}>
+            <div style={{ 
+              fontSize: '12px',
+              color: 'var(--text-secondary)',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              marginBottom: '8px'
+            }}>
+              Appearance
+            </div>
+            <button
+              onClick={toggleTheme}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                backgroundColor: 'var(--bg-main)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-main)',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.15s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-main)'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                {isDark ? 'light_mode' : 'dark_mode'}
+              </span>
+              {isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            </button>
+          </div>
+
           <div style={{
             padding: '16px',
             backgroundColor: '#f9fafb',
@@ -223,7 +271,7 @@ export default function UserManagement() {
           }}>
             <div style={{ 
               fontSize: '12px',
-              color: '#6b7280',
+              color: 'var(--text-secondary)',
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -233,7 +281,7 @@ export default function UserManagement() {
             </div>
             <div style={{ 
               fontSize: '16px',
-              color: '#111827',
+              color: 'var(--text-main)',
               fontWeight: 600
             }}>
               {user.username}

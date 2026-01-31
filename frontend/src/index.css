@@ -37,11 +37,18 @@
   --warning-hover: #d97706;
   --warning-light: #fef3c7;
   
-  /* Backgrounds */
-  --bg-main: #ffffff;
-  --bg-panel: #f9fafb;
-  --bg-hover: #f3f4f6;
+  /* Semantic Design Tokens */
+  --bg-main: #ffffff;          /* Main editor/background */
+  --bg-panel: #f9fafb;         /* Side panels */
+  --bg-hover: #f3f4f6;         /* Button/Item hover */
   --bg-selected: #eff6ff;
+  
+  --border-main: #e5e7eb;      /* Standard borders */
+  --border-hover: #d1d5db;
+  
+  --text-main: #111827;        /* Primary text */
+  --text-secondary: #6b7280;   /* Muted text */
+  --text-tertiary: #9ca3af;    /* Breadcrumbs/Icons */
   
   /* Spacing */
   --space-xs: 4px;
@@ -59,6 +66,21 @@
   
   /* Typography */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] {
+  --bg-main: #111827;          /* Very Dark Gray */
+  --bg-panel: #1f2937;         /* Dark Gray */
+  --bg-hover: #374151;         /* Medium Gray */
+  --bg-selected: #1e3a8a;
+  
+  --border-main: #374151;
+  --border-hover: #4b5563;
+  
+  --text-main: #f9fafb;        /* Off-white */
+  --text-secondary: #9ca3af;   /* Gray 400 */
+  --text-tertiary: #6b7280;    /* Gray 500 */
 }
 
 * {
@@ -120,11 +142,14 @@ html, body, #root {
 .ql-container.ql-snow {
   border-top: none !important;
   font-family: var(--font-sans);
+  background-color: var(--bg-main) !important;
 }
 
 .ql-editor {
   font-size: 15px;
   line-height: 1.6;
+  color: var(--text-main);
+  background-color: var(--bg-main);
 }
 
 /* Quill dropdown styling */
