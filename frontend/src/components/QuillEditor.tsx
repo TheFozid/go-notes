@@ -605,7 +605,7 @@ function QuillEditor() {
       
 {/* Inject styles to fix checklist sizing and remove duplicates */}
       <style>{`
-        /* 1. Reset the LI element and HIDE original Quill checkbox */
+        /* 1. Reset the LI element */
         .ql-editor li[data-list="checked"],
         .ql-editor li[data-list="unchecked"] {
           list-style-type: none !important;
@@ -615,20 +615,28 @@ function QuillEditor() {
           padding-bottom: 0.3em !important;
         }
 
-        /* 2. CRITICAL: Hide the default Quill checkbox that appears as content */
+        /* 2. Make the original Quill checkbox invisible but keep it clickable */
         .ql-editor li[data-list="checked"] > .ql-ui,
         .ql-editor li[data-list="unchecked"] > .ql-ui {
-          display: none !important;
+          opacity: 0 !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          width: 1.5em !important;
+          height: 1.5em !important;
+          cursor: pointer !important;
+          z-index: 10 !important;
         }
 
-        /* 3. Also hide any potential ::marker */
+        /* 3. Hide any potential ::marker */
         .ql-editor li[data-list="checked"]::marker,
         .ql-editor li[data-list="unchecked"]::marker {
           content: "" !important;
           display: none !important;
         }
 
-        /* 4. Custom Checkbox - Unchecked */
+        /* 4. Custom Checkbox - Unchecked (visual only, behind invisible clickable) */
         .ql-editor li[data-list="unchecked"]::before {
           content: '\\2610' !important;
           position: absolute !important;
@@ -638,11 +646,12 @@ function QuillEditor() {
           font-size: 1.5em !important;
           line-height: 1em !important;
           color: #000000 !important;
-          cursor: pointer !important;
+          pointer-events: none !important;
           font-weight: 900 !important;
+          z-index: 1 !important;
         }
 
-        /* 5. Custom Checkbox - Checked */
+        /* 5. Custom Checkbox - Checked (visual only, behind invisible clickable) */
         .ql-editor li[data-list="checked"]::before {
           content: '\\2611' !important;
           position: absolute !important;
@@ -652,8 +661,9 @@ function QuillEditor() {
           font-size: 1.5em !important;
           line-height: 1em !important;
           color: #000000 !important;
-          cursor: pointer !important;
+          pointer-events: none !important;
           font-weight: 900 !important;
+          z-index: 1 !important;
         }
       `}</style>
     </div>
