@@ -603,54 +603,57 @@ function QuillEditor() {
         }}
       />
       
-      {/* Inject styles to fix checklist sizing, clicking and remove duplicates */}
+{/* Inject styles to fix checklist sizing and remove duplicates */}
       <style>{`
-        /* 1. Reset the LI element completely */
+        /* 1. Reset the LI element and HIDE original Quill checkbox */
         .ql-editor li[data-list="checked"],
         .ql-editor li[data-list="unchecked"] {
-          /* Kill native bullets */
           list-style-type: none !important;
-          /* Kill potential background icons */
-          background-image: none !important;
-          /* Reset Positioning */
           padding-left: 2.2em !important; 
           position: relative !important;
           padding-top: 0.3em !important;
           padding-bottom: 0.3em !important;
         }
 
-        /* 2. Explicitly hide the browser marker (::marker) */
+        /* 2. CRITICAL: Hide the default Quill checkbox that appears as content */
+        .ql-editor li[data-list="checked"] > .ql-ui,
+        .ql-editor li[data-list="unchecked"] > .ql-ui {
+          display: none !important;
+        }
+
+        /* 3. Also hide any potential ::marker */
         .ql-editor li[data-list="checked"]::marker,
         .ql-editor li[data-list="unchecked"]::marker {
           content: "" !important;
+          display: none !important;
         }
 
-        /* 3. The Custom Checkbox */
-        .ql-editor li[data-list="checked"]::before,
+        /* 4. Custom Checkbox - Unchecked */
         .ql-editor li[data-list="unchecked"]::before {
           content: '\\2610' !important;
           position: absolute !important;
           left: 0 !important;
           top: 50% !important;
           transform: translateY(-50%) !important;
-          
-          /* Size */
           font-size: 1.5em !important;
           line-height: 1em !important;
-          
-          /* Appearance */
           color: #000000 !important;
           cursor: pointer !important;
-          display: inline-block !important;
           font-weight: 900 !important;
-          
-          /* Ensure no background from inheritance */
-          background-image: none !important;
         }
 
-        /* 4. Checked State */
+        /* 5. Custom Checkbox - Checked */
         .ql-editor li[data-list="checked"]::before {
           content: '\\2611' !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          font-size: 1.5em !important;
+          line-height: 1em !important;
+          color: #000000 !important;
+          cursor: pointer !important;
+          font-weight: 900 !important;
         }
       `}</style>
     </div>
