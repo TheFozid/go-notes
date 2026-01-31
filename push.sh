@@ -14,7 +14,7 @@ if [ -z "$MSG" ] || [ -z "$BUMP" ]; then
     exit 1
 fi
 
-IMAGE_BASE="ghcr.io/thefozid/go-llama"
+IMAGE_BASE="ghcr.io/thefozid/go-notes"
 
 # Get numerically highest tag (strip 'v')
 git fetch --tags --quiet
