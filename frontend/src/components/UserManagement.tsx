@@ -265,9 +265,10 @@ export default function UserManagement() {
 
           <div style={{
             padding: '16px',
-            backgroundColor: '#f9fafb',
+            backgroundColor: 'var(--bg-panel)',
             borderRadius: '8px',
-            marginBottom: '16px'
+            marginBottom: '16px',
+            border: '1px solid var(--border-main)'
           }}>
             <div style={{ 
               fontSize: '12px',
@@ -350,9 +351,9 @@ export default function UserManagement() {
           {showChangeUsername && (
             <form onSubmit={handleUpdateAccount} style={{ 
               padding: '16px',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--border-main)',
               borderRadius: '8px',
-              backgroundColor: '#ffffff'
+              backgroundColor: 'var(--bg-main)'
             }}>
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ 
@@ -360,7 +361,7 @@ export default function UserManagement() {
                   marginBottom: '6px',
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#374151'
+                  color: 'var(--text-main)'
                 }}>
                   New Username:
                 </label>
@@ -372,10 +373,12 @@ export default function UserManagement() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid var(--border-main)',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    fontFamily: 'inherit'
+                    fontFamily: 'inherit',
+                    backgroundColor: 'var(--bg-main)',
+                    color: 'var(--text-main)'
                   }}
                 />
               </div>
@@ -542,9 +545,9 @@ export default function UserManagement() {
             <form onSubmit={handleCreateUser} style={{ 
               marginBottom: '16px',
               padding: '16px',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--border-main)',
               borderRadius: '8px',
-              backgroundColor: '#ffffff'
+              backgroundColor: 'var(--bg-main)'
             }}>
               <h3 style={{ 
                 marginTop: 0,
@@ -675,9 +678,9 @@ export default function UserManagement() {
                     style={{
                       padding: '12px',
                       marginBottom: '8px',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid var(--border-main)',
                       borderRadius: '8px',
-                      backgroundColor: '#ffffff'
+                      backgroundColor: 'var(--bg-main)'
                     }}
                   >
                     {!isEditing ? (
