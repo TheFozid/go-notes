@@ -14,8 +14,7 @@ if [ -z "$MSG" ] || [ -z "$BUMP" ]; then
     exit 1
 fi
 
-IMAGE_BASE_BACKEND="ghcr.io/thefozid/go-notes-backend"
-IMAGE_BASE_YJS="ghcr.io/thefozid/go-notes-yjs"
+IMAGE_BASE="ghcr.io/thefozid/go-llama"
 
 # Get numerically highest tag (strip 'v')
 git fetch --tags --quiet
@@ -43,47 +42,36 @@ echo "📌 Previous version: $LATEST"
 echo "✨ New version: v$VERSION"
 echo
 
-# Build + push backend images for AMD64 + ARM64
-echo "🚀 Building & pushing backend multi-arch images..."
-docker buildx build \
-  --platform linux/amd64,linux/arm64 \
-  --target backend \
-  --cache-from type=registry,ref="$IMAGE_BASE_BACKEND:buildcache" \
-  --cache-to type=registry,ref="$IMAGE_BASE_BACKEND:buildcache",mode=max \
-  -t "$IMAGE_BASE_BACKEND:latest" \
-  -t "$IMAGE_BASE_BACKEND:$VERSION" \
-  -t "$IMAGE_BASE_BACKEND:$MAJOR.$MINOR" \
-  -t "$IMAGE_BASE_BACKEND:$MAJOR" \
-  --push .
-
-echo
-
-# Build + push yjs images for AMD64 + ARM64
-echo "🚀 Building & pushing yjs multi-arch images..."
-docker buildx build \
-  --platform linux/amd64,linux/arm64 \
-  --target yjs \
-  --cache-from type=registry,ref="$IMAGE_BASE_YJS:buildcache" \
-  --cache-to type=registry,ref="$IMAGE_BASE_YJS:buildcache",mode=max \
-  -t "$IMAGE_BASE_YJS:latest" \
-  -t "$IMAGE_BASE_YJS:$VERSION" \
-  -t "$IMAGE_BASE_YJS:$MAJOR.$MINOR" \
-  -t "$IMAGE_BASE_YJS:$MAJOR" \
-  --push .
-
-echo
+# Git operations BEFORE build (faster feedback if commit fails)
 echo "📦 Git commit + tag..."
 git add .
 git commit -m "$MSG" || echo "No changes to commit"
 git tag "v$VERSION"
+
+
+#  --platform linux/amd64,linux/arm64 \
+# Build + push images
+echo "🚀 Building & pushing multi-arch images..."
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --cache-from type=registry,ref="$IMAGE_BASE:buildcache" \
+  --cache-to type=registry,ref="$IMAGE_BASE:buildcache",mode=min \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  -t "$IMAGE_BASE:latest" \
+  -t "$IMAGE_BASE:$VERSION" \
+  -t "$IMAGE_BASE:$MAJOR.$MINOR" \
+  -t "$IMAGE_BASE:$MAJOR" \
+  --push .
+
+echo
+echo "🌐 Pushing git changes..."
 git push
 git push --tags
 
-docker system prune -a --volumes -f
-docker builder prune -a -f
-docker buildx prune -a -f
+# Selective cleanup (don't prune build cache!)
+echo "🧹 Cleaning up old images..."
+docker system prune -f --filter "until=84h"
+docker buildx prune --filter "until=84h" -f
 
 echo
 echo "✅ Release v$VERSION complete"
-echo "Backend: $IMAGE_BASE_BACKEND:$VERSION"
-echo "YJS: $IMAGE_BASE_YJS:$VERSION"
