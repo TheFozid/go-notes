@@ -578,7 +578,7 @@ function QuillEditor() {
           <span className="material-symbols-outlined" style={{ 
             fontSize: '64px',
             color: '#d1d5db',
-            marginBottom: '16px',
+            marginBottom: '17px',
             display: 'block'
           }}>
             description
