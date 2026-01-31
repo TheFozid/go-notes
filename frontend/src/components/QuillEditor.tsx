@@ -603,32 +603,41 @@ function QuillEditor() {
         }}
       />
       
-      {/* Inject styles here to ensure they override Quill's library styles */}
+      {/* Inject styles to fix checklist sizing and clicking */}
       <style>{`
+        /* Reset default bullets to prevent 'double' checkbox effect */
         .ql-editor li[data-list="checked"],
         .ql-editor li[data-list="unchecked"] {
-          padding-left: 2.5em !important;
-          padding-bottom: 0.5em !important;
+          list-style-type: none !important; /* Remove browser default bullet */
+          padding-left: 2.2em !important; /* Space for the checkbox */
+          position: relative !important;
+          padding-top: 0.25em !important;
+          padding-bottom: 0.25em !important;
         }
 
+        /* The Custom Checkbox */
         .ql-editor li[data-list="checked"]::before,
         .ql-editor li[data-list="unchecked"]::before {
-          content: '\\2610' !important;
-          display: inline-block !important;
-          text-align: center !important;
-          font-size: 2.2em !important;
-          width: 1.5em !important;
-          height: 1.5em !important;
-          line-height: 1.1em !important;
-          margin-left: -1.6em !important; 
-          margin-right: 0.3em !important;
+          content: '\\2610' !important; /* Unicode Box */
+          position: absolute !important; /* Take out of flow to control position */
+          left: 0 !important; /* Pin to the left edge */
+          top: 50% !important;
+          transform: translateY(-50%) !important; /* Vertically center */
+          
+          /* Size Controls - Moderate size to fit Quill's click zone */
+          font-size: 1.5em !important; /* Reduced from 2.2em */
+          line-height: 1em !important;
+          
+          /* Appearance */
           color: #000000 !important;
-          font-weight: 900 !important;
           cursor: pointer !important;
+          display: inline-block !important;
+          font-weight: 900 !important;
         }
 
+        /* Checked State */
         .ql-editor li[data-list="checked"]::before {
-          content: '\\2611' !important;
+          content: '\\2611' !important; /* Unicode Checked Box */
         }
       `}</style>
     </div>
