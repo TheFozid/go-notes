@@ -110,7 +110,7 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
           style={{
             position: 'fixed',
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
-            right: buttonRef.current ? window.innerWidth - buttonRef.current.getBoundingClientRect().right : 0,
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
             backgroundColor: '#ffffff',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',

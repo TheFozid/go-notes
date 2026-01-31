@@ -40,3 +40,17 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Custom Quill Checklist Overrides */
+.ql-editor li[data-list="checked"],
+.ql-editor li[data-list="unchecked"] {
+  padding-left: 1.8em; /* Increase padding to fit larger checkbox */
+  padding-bottom: 0.5em; /* Add breathing room between items */
+}
+
+.ql-editor li[data-list="checked"]::before,
+.ql-editor li[data-list="unchecked"]::before {
+  font-size: 1.5em; /* Enlarge the checkbox symbol */
+  line-height: 1em; /* Center vertically */
+  color: #444; /* Darker color for better visibility */
+}
