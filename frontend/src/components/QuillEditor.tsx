@@ -5,6 +5,7 @@ import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import QuillCursors from 'quill-cursors';
 import QuillTableBetter from 'quill-table-better';
+import ImageResize from 'quill-image-resize';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
 import { getNote, updateNoteSearchText } from '../api/workspaces';
@@ -20,6 +21,7 @@ Quill.register('modules/cursors', QuillCursors);
 Quill.register({
   'modules/table-better': QuillTableBetter
 }, true);
+Quill.register('modules/imageResize', ImageResize);
 
 function QuillEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -117,6 +119,7 @@ function QuillEditor() {
           menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
           toolbarTable: true
         },
+        imageResize: {},
         keyboard: {
           bindings: QuillTableBetter.keyboardBindings
         }
