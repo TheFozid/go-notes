@@ -412,7 +412,6 @@ console.log('[MainApp] Note restored:', noteId);
             <UserManagement />
           </div>
         )}
-        )}
       </div>
     </div>
   );
