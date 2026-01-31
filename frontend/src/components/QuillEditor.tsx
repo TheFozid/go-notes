@@ -435,6 +435,18 @@ function QuillEditor() {
     }
   }
 
+  function handleUndo() {
+    if (quillRef.current) {
+      quillRef.current.history.undo();
+    }
+  }
+
+  function handleRedo() {
+    if (quillRef.current) {
+      quillRef.current.history.redo();
+    }
+  }
+
   return (
     <div style={{ 
       height: '100%', 
@@ -442,61 +454,117 @@ function QuillEditor() {
       flexDirection: 'column',
       backgroundColor: '#ffffff'
     }}>
-      {/* Toolbar row with Quill toolbar + Tags + Color Picker */}
+      {/* Toolbar Container */}
       <div style={{
         display: selectedNoteId ? 'flex' : 'none',
-        alignItems: 'center',
+        flexDirection: 'column',
         backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e5e7eb',
-        padding: '12px 16px',
-        gap: '12px',
         flexShrink: 0
       }}>
-        {/* Scrollable Quill toolbar */}
+        
+        {/* Line 1: Quill Editor Items */}
         <div style={{
-          flex: 1,
-          overflowX: 'auto',
-          overflowY: 'visible',
-          minWidth: 0,
-          paddingBottom: '8px',
-          marginBottom: '-8px'
+          padding: '12px 16px',
+          borderBottom: '1px solid #f3f4f6', // Light separator between rows
         }}>
-          <div 
-            id="toolbar-container"
-            style={{
-              display: 'inline-flex'
-            }}
-          />
+          <div style={{
+            overflowX: 'auto',
+            overflowY: 'visible',
+            paddingBottom: '8px',
+            marginBottom: '-8px'
+          }}>
+            <div 
+              id="toolbar-container"
+              style={{
+                display: 'inline-flex'
+              }}
+            />
+          </div>
         </div>
 
-        {/* Separator */}
-        <div style={{
-          width: '1px',
-          height: '32px',
-          backgroundColor: '#e5e7eb',
-          flexShrink: 0
-        }} />
-
-        {/* Tags and Color Picker */}
+        {/* Line 2: Undo/Redo, Tags, Color */}
         <div style={{
           display: 'flex',
-          gap: '8px',
           alignItems: 'center',
-          flexShrink: 0,
+          padding: '8px 16px',
+          borderBottom: '1px solid #e5e7eb', // Main border at bottom
+          gap: '16px',
+          backgroundColor: '#ffffff',
           position: 'relative',
-          zIndex: 9999
+          zIndex: 10
         }}>
-          <TagInput
-            currentTags={currentNoteTags}
-            onTagsChange={handleTagsChange}
-          />
-          <ColorPicker 
-            currentColor={currentNoteColor} 
-            onColorChange={handleColorChange}
-          />
+          
+          {/* Undo / Redo Group */}
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button
+              onClick={handleUndo}
+              title="Undo"
+              style={{
+                background: 'transparent',
+                border: '1px solid transparent',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                padding: '4px',
+                color: '#4b5563',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>undo</span>
+            </button>
+            <button
+              onClick={handleRedo}
+              title="Redo"
+              style={{
+                background: 'transparent',
+                border: '1px solid transparent',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                padding: '4px',
+                color: '#4b5563',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>redo</span>
+            </button>
+          </div>
+
+          {/* Separator */}
+          <div style={{
+            width: '1px',
+            height: '24px',
+            backgroundColor: '#e5e7eb',
+            flexShrink: 0
+          }} />
+
+          {/* Tags and Color Picker */}
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+            flex: 1,
+            position: 'relative',
+            zIndex: 9999 // Ensures dropdowns appear above other elements
+          }}>
+            <TagInput
+              currentTags={currentNoteTags}
+              onTagsChange={handleTagsChange}
+            />
+            <ColorPicker 
+              currentColor={currentNoteColor} 
+              onColorChange={handleColorChange}
+            />
+          </div>
         </div>
       </div>
-
+      
       {!selectedNoteId && (
         <div style={{ 
           padding: '48px 32px',
