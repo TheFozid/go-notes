@@ -93,7 +93,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
           padding: '6px 12px',
           cursor: moveMode.active ? 'default' : 'pointer',
           borderRadius: '6px',
-          backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+          backgroundColor: isSelected ? 'var(--bg-selected)' : 'transparent',
           borderLeft: `3px solid ${noteColor}`,
           transition: 'background-color 0.15s',
           opacity: moveMode.active && moveMode.itemType === 'note' && moveMode.itemId === note.id
@@ -102,7 +102,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
         }}
         onMouseEnter={(e) => {
           if (!isSelected && !moveMode.active) {
-            e.currentTarget.style.backgroundColor = '#f9fafb';
+            e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
           }
         }}
         onMouseLeave={(e) => {
@@ -114,7 +114,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
         <span style={{ marginRight: '8px' }}>
           <span className="material-symbols-outlined" style={{ 
             fontSize: '18px',
-            color: isSelected ? '#2563eb' : '#9ca3af'
+            color: isSelected ? 'var(--primary)' : 'var(--text-secondary)'
           }}>
             description
           </span>
@@ -123,7 +123,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
         <span style={{ 
           flex: 1,
           fontSize: '14px',
-          color: isSelected ? '#111827' : '#4b5563',
+          color: isSelected ? 'var(--text-main)' : 'var(--text-secondary)',
           fontWeight: isSelected ? 500 : 400,
           display: 'flex',
           alignItems: 'center',

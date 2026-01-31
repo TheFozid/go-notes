@@ -36,8 +36,8 @@ export default function WorkspaceTree() {
         <div style={{
           padding: '12px',
           marginBottom: '16px',
-          backgroundColor: '#dbeafe',
-          border: '2px solid #2563eb',
+          backgroundColor: 'var(--bg-selected)',
+          border: '2px solid var(--primary)',
           borderRadius: '8px',
           display: 'flex',
           alignItems: 'center',
@@ -48,7 +48,7 @@ export default function WorkspaceTree() {
             <div style={{ 
               fontWeight: 600, 
               fontSize: '14px', 
-              color: '#1e40af', 
+              color: 'var(--primary)', 
               marginBottom: '4px',
               display: 'flex',
               alignItems: 'center',
@@ -59,7 +59,7 @@ export default function WorkspaceTree() {
               </span>
               Moving {moveMode.itemType}
             </div>
-            <div style={{ fontSize: '13px', color: '#3b82f6' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
               Click a folder to move here, or workspace title to move to root
             </div>
           </div>
@@ -123,10 +123,10 @@ export default function WorkspaceTree() {
         <div style={{
           padding: '12px',
           marginBottom: '16px',
-          backgroundColor: '#fee2e2',
-          border: '1px solid #fecaca',
+          backgroundColor: 'var(--danger-light)',
+          border: '1px solid var(--danger)',
           borderRadius: '8px',
-          color: '#991b1b',
+          color: 'var(--danger)',
           fontSize: '13px'
         }}>
           {error}

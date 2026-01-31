@@ -8,7 +8,9 @@ import QuillTableBetter from 'quill-table-better';
 import ImageResize from 'quill-image-resize';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import { getNote, updateNoteSearchText } from '../api/workspaces';
+import { getNoteColor } from '../utils/noteColors';
 import 'quill/dist/quill.snow.css';
 import 'quill-table-better/dist/quill-table-better.css';
 import 'katex/dist/katex.min.css';
@@ -33,6 +35,7 @@ function QuillEditor() {
   const selectedWorkspaceId = useWorkspaceStore((state) => state.selectedWorkspaceId);
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const { isDark } = useThemeStore();
   const [currentNoteColor, setCurrentNoteColor] = useState<string>('#FFFFFF');
   const [currentNoteTags, setCurrentNoteTags] = useState<string[]>([]);
 
@@ -321,8 +324,9 @@ function QuillEditor() {
         if (containerRef.current) {
           const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;
           if (editorDiv) {
-            editorDiv.style.backgroundColor = noteData.color;
-            console.log('[QuillEditor] Applied color:', noteData.color);
+            const bgColor = getNoteColor(noteData.color, isDark);
+            editorDiv.style.backgroundColor = bgColor;
+            console.log('[QuillEditor] Applied color:', bgColor);
           }
         }
 
@@ -407,7 +411,8 @@ function QuillEditor() {
       if (containerRef.current) {
         const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;
         if (editorDiv) {
-          editorDiv.style.backgroundColor = newColor;
+          const bgColor = getNoteColor(newColor, isDark);
+          editorDiv.style.backgroundColor = bgColor;
         }
       }
       
@@ -452,14 +457,15 @@ function QuillEditor() {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      backgroundColor: '#ffffff'
+      backgroundColor: 'var(--bg-main)'
     }}>
       {/* Toolbar Container */}
       <div style={{
         display: selectedNoteId ? 'flex' : 'none',
         flexDirection: 'column',
-        backgroundColor: '#ffffff',
-        flexShrink: 0
+        backgroundColor: 'var(--bg-main)',
+        flexShrink: 0,
+        borderBottom: `1px solid var(--border-main)`
       }}>
         
         {/* Line 1: Quill Editor Items */}
@@ -487,9 +493,9 @@ function QuillEditor() {
           display: 'flex',
           alignItems: 'center',
           padding: '8px 16px',
-          borderBottom: '1px solid #e5e7eb', // Main border at bottom
+          borderBottom: '1px solid var(--border-main)', // Main border at bottom
           gap: '16px',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-main)',
           position: 'relative',
           zIndex: 10
         }}>
@@ -510,7 +516,7 @@ function QuillEditor() {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>undo</span>
