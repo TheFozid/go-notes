@@ -1,3 +1,4 @@
+// Force frontend rebuild
 import { useEffect, useRef, useState } from 'react';
 import Quill from 'quill';
 import { QuillBinding } from 'y-quill';
