@@ -134,7 +134,9 @@ export default function WorkspaceTree() {
       )}
       {/* Workspaces List */}
       <div style={{ marginBottom: '16px' }}>
-        {workspaces.map((workspace) => (
+        {[...workspaces]
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((workspace) => (
           <WorkspaceNode
             key={workspace.id}
             workspace={workspace}

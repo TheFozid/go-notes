@@ -268,21 +268,27 @@ setSelectedNote: (id) => set((state) => {
   },
   
   getRootFolders: (workspaceId) => {
-    return get().folders.filter(
-      (f) => f.workspace_id === workspaceId && f.parent_id === null
-    );
+    return get().folders
+      .filter(
+        (f) => f.workspace_id === workspaceId && f.parent_id === null
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
   },
   
   getChildFolders: (parentId) => {
-    return get().folders.filter((f) => f.parent_id === parentId);
+    return get().folders
+      .filter((f) => f.parent_id === parentId)
+      .sort((a, b) => a.name.localeCompare(b.name));
   },
   
   getNotesInFolder: (folderId, workspaceId) => {
-    return get().notes.filter(
-      (n) => n.workspace_id === workspaceId && 
-             n.folder_id === folderId && 
-             !n.is_trashed
-    );
+    return get().notes
+      .filter(
+        (n) => n.workspace_id === workspaceId && 
+               n.folder_id === folderId && 
+               !n.is_trashed
+      )
+      .sort((a, b) => a.title.localeCompare(b.title));
   },
   
   getTrashedNotes: (workspaceId) => {
