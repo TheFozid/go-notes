@@ -578,6 +578,7 @@ function QuillEditor() {
             <ColorPicker 
               currentColor={currentNoteColor} 
               onColorChange={handleColorChange}
+              isDark={isDark}
             />
           </div>
         </div>
