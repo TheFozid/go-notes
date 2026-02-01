@@ -691,7 +691,7 @@ export default function UserManagement() {
                       }}>
                         <span style={{ 
                           fontSize: '14px',
-                          color: '#111827',
+                          color: 'var(--text-main)',
                           fontWeight: 500
                         }}>
                           {u.username}
@@ -699,8 +699,8 @@ export default function UserManagement() {
                             <span style={{ 
                               marginLeft: '8px',
                               fontSize: '12px',
-                              color: '#6b7280',
-                              backgroundColor: '#f3f4f6',
+                              color: 'var(--text-secondary)',
+                              backgroundColor: 'var(--bg-hover)',
                               padding: '2px 8px',
                               borderRadius: '12px',
                               fontWeight: 500
@@ -761,7 +761,7 @@ export default function UserManagement() {
                           marginBottom: '12px',
                           fontSize: '14px',
                           fontWeight: 600,
-                          color: '#111827'
+                          color: 'var(--text-main)'
                         }}>
                           Editing: {u.username}
                         </p>
@@ -771,7 +771,7 @@ export default function UserManagement() {
                             marginBottom: '6px',
                             fontSize: '13px',
                             fontWeight: 500,
-                            color: '#6b7280'
+                            color: 'var(--text-secondary)'
                           }}>
                             New Username (leave blank to keep current):
                           </label>

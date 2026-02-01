@@ -355,6 +355,18 @@ function QuillEditor() {
     };
   }, [selectedNoteId, selectedWorkspaceId, token, user]);
 
+  // Update editor background when theme changes
+  useEffect(() => {
+    if (containerRef.current && selectedNoteId) {
+      const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;
+      if (editorDiv) {
+        const bgColor = getNoteColor(currentNoteColor, isDark);
+        editorDiv.style.backgroundColor = bgColor;
+        console.log('[QuillEditor] Updated background for theme:', isDark ? 'dark' : 'light', bgColor);
+      }
+    }
+  }, [isDark, currentNoteColor, selectedNoteId]);
+
   // Extract and sync searchable text content
   useEffect(() => {
     if (!quillRef.current || !selectedNoteId || !selectedWorkspaceId) return;
@@ -651,7 +663,7 @@ function QuillEditor() {
           transform: translateY(-50%) !important;
           font-size: 1.5em !important;
           line-height: 1em !important;
-          color: #000000 !important;
+          color: ${isDark ? '#ffffff' : '#000000'} !important;
           pointer-events: none !important;
           font-weight: 900 !important;
           z-index: 1 !important;
@@ -666,7 +678,7 @@ function QuillEditor() {
           transform: translateY(-50%) !important;
           font-size: 1.5em !important;
           line-height: 1em !important;
-          color: #000000 !important;
+          color: ${isDark ? '#ffffff' : '#000000'} !important;
           pointer-events: none !important;
           font-weight: 900 !important;
           z-index: 1 !important;

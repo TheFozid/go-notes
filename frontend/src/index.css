@@ -165,22 +165,28 @@ html, body, #root {
 /* Quill dropdown styling */
 .ql-picker-options {
   z-index: 10000 !important;
-  background-color: white !important;
-  border: 1px solid var(--gray-200) !important;
+  background-color: var(--bg-panel) !important;
+  border: 1px solid var(--border-main) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .ql-picker-item:hover {
-  background-color: var(--gray-100) !important;
+  background-color: var(--bg-hover) !important;
+}
+
+/* Dark mode specific for dropdown items to ensure text visibility */
+[data-theme="dark"] .ql-picker-item {
+  color: var(--text-main) !important;
 }
 
 .ql-tooltip {
   z-index: 10000 !important;
-  background-color: white !important;
-  border: 1px solid var(--gray-200) !important;
+  background-color: var(--bg-panel) !important;
+  border: 1px solid var(--border-main) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-main) !important;
 }
 
 /* Scrollbar styling */
@@ -210,8 +216,8 @@ html, body, #root {
 .ql-table-select-container {
   z-index: 10000 !important;
   position: fixed !important;
-  background-color: white !important;
-  border: 1px solid var(--gray-200) !important;
+  background-color: var(--bg-panel) !important;
+  border: 1px solid var(--border-main) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   padding: 8px !important;
@@ -221,7 +227,7 @@ html, body, #root {
 .ql-table-menu-item,
 .ql-table-operation-menu {
   z-index: 10000 !important;
-  background-color: white !important;
+  background-color: var(--bg-panel) !important;
 }
 
 /* Table selection styling */

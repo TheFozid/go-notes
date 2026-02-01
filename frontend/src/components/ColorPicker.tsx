@@ -57,7 +57,7 @@ function ColorPicker({ currentColor, onColorChange }: ColorPickerProps) {
           boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = '#d1d5db';
+          e.currentTarget.style.borderColor = 'var(--border-hover)';
           e.currentTarget.style.transform = 'scale(1.05)';
         }}
         onMouseLeave={(e) => {
