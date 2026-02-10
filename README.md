@@ -712,12 +712,12 @@ Special thanks to the open-source community for these amazing tools!
 
 <p align="center">
   <b>If you find go-notes useful, consider supporting development:</b><br><br>
-  <a href="https://buymeacoffee.com/danny_and_serin">
-    <img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee">
+  <a href="https://en.tipeee.com/thefozid/">
+    <img src="https://fr.tipeee.com/img/tipeee-logo-com.png" alt="Leave me a Tip!">
   </a>
 </p>
 
 <p align="center">
-  <b>Made y <a href="https://github.com/TheFozid">TheFozid</a></b><br>
+  <b>Made by <a href="https://github.com/TheFozid">TheFozid</a></b><br>
   <sub>A collaborative note-taking app that respects your data and privacy</sub>
 </p>
