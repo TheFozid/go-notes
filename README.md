@@ -712,8 +712,8 @@ Special thanks to the open-source community for these amazing tools!
 
 <p align="center">
   <b>If you find go-notes useful, consider supporting development:</b><br><br>
-  <a href="https://en.tipeee.com/thefozid/">
-    <img src="https://fr.tipeee.com/img/tipeee-logo-com.png" alt="Leave me a Tip!">
+  <a href="https://ko-fi.com/fozid">
+    <img src="https://storage.ko-fi.com/cdn/kofi2.png?v=6" alt="Leave me a Tip!">
   </a>
 </p>
 
