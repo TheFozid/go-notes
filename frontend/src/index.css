@@ -1066,10 +1066,14 @@ html, body, #root {
  * top-right corner. Rather than guess its size, move the sync status to the
  * left half of the bar in that shell, leaving the corner to the account button.
  */
+/*
+ * DOM order is: toggle, breadcrumb, status, account. Letting the breadcrumb
+ * size to its content and giving the status the flexible gap puts the status
+ * just after the breadcrumb on the left, with only the avatar in the corner.
+ * (An earlier attempt also set order:-1, which threw the breadcrumb right.)
+ */
 [data-shell="electron"] .conn-status {
-  order: -1;
   margin-right: auto;
-  margin-left: 4px;
 }
 
 [data-shell="electron"] .breadcrumb {
