@@ -66,10 +66,20 @@
   
   /* Typography */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  /* Tells the browser (and Android WebView) that this page styles both themes
+     itself. Without it, WebView's algorithmic darkening repaints everything
+     flat black instead of using the palette below. */
+  color-scheme: light;
+
+  /* Space reserved for host-app chrome overlapping the page (Electron) */
+  --shell-inset-right: 0px;
 }
 
 /* Dark Mode Overrides */
 [data-theme="dark"] {
+  color-scheme: dark;
+
   --bg-main: #111827;          /* Very Dark Gray */
   --bg-panel: #1f2937;         /* Dark Gray */
   --bg-hover: #374151;         /* Medium Gray */
@@ -93,7 +103,9 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
   font-family: var(--font-sans);
-  color: var(--gray-800);
+  /* Was var(--gray-800), a fixed dark grey that stayed dark in dark mode */
+  color: var(--text-main);
+  background-color: var(--bg-main);
 }
 
 /* ============================================
@@ -732,9 +744,10 @@ html, body, #root {
 .conn-status--connecting .conn-dot,
 .conn-status--loading .conn-dot { background-color: var(--warning); }
 
-/* Not enough room for words next to a breadcrumb on a phone */
 @media (max-width: 767px) {
-  .conn-label { display: none; }
+  /* Keep the label, but let the breadcrumb give up room for it first */
+  .conn-label { font-size: 12px; }
+  .breadcrumb-part--current { max-width: 40vw; overflow: hidden; text-overflow: ellipsis; }
 }
 
 .editor-loading {
@@ -1041,4 +1054,29 @@ html, body, #root {
   font-size: 13px;
   line-height: 1.4;
   color: var(--text-secondary);
+}
+
+
+/* ============================================
+   HOST APP CHROME (Electron)
+   ============================================ */
+
+/*
+ * The Electron wrapper draws its own "change server" button over the page's
+ * top-right corner. Rather than guess its size, move the sync status to the
+ * left half of the bar in that shell, leaving the corner to the account button.
+ */
+[data-shell="electron"] .conn-status {
+  order: -1;
+  margin-right: auto;
+  margin-left: 4px;
+}
+
+[data-shell="electron"] .breadcrumb {
+  flex: 0 1 auto;
+}
+
+/* Extra clearance for the corner if the button is wider than the avatar */
+[data-shell="electron"] .topbar {
+  padding-right: calc(12px + var(--shell-inset-right));
 }

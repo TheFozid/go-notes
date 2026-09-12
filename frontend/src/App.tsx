@@ -19,6 +19,17 @@ import { getWorkspaces, getFolders, getNotes } from './api/workspaces';
 const LAST_NOTE_KEY = 'go-notes-last-selected-note';
 const SIDEBAR_KEY_STEP = 16;
 
+/*
+ * The desktop wrapper overlays its own controls on the page. Tagging the shell
+ * lets index.css move our top-bar items clear of them. Electron puts its name
+ * in the user agent; browsers and the Android WebView do not.
+ */
+function detectShell(): void {
+  const isElectron = /electron/i.test(navigator.userAgent);
+  if (isElectron) document.documentElement.setAttribute('data-shell', 'electron');
+}
+detectShell();
+
 // Main app layout
 function MainApp() {
   const isMobile = useIsMobile();
