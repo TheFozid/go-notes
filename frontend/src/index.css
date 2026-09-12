@@ -156,10 +156,19 @@ html, body, #root {
 }
 
 .ql-editor {
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.7;
   color: var(--text-main);
-  background-color: var(--bg-main);
+  /* The note colour is applied to .ql-container so it fills the pane, while the
+     text sits in a column short enough to read comfortably on a wide screen */
+  background-color: transparent;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 24px 20px 40vh;
+}
+
+.ql-container.ql-snow {
+  border: none !important;
 }
 
 /* Quill dropdown styling */
@@ -286,4 +295,750 @@ html, body, #root {
 .focus-ring:focus {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* ============================================
+   APP SHELL (responsive layout)
+   ============================================ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* visible height on mobile, excluding browser toolbars */
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  /* All zero unless the page is drawn edge-to-edge under system bars */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.app-shell.is-resizing,
+.app-shell.is-resizing * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+/* Top bar */
+.topbar {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background-color: var(--bg-main);
+  border-bottom: 1px solid var(--border-main);
+}
+
+.app-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+.breadcrumb {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.breadcrumb-part {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.breadcrumb-part--current {
+  color: var(--text-main);
+  font-weight: 600;
+  max-width: none;
+}
+
+.breadcrumb-sep {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  margin: 0 4px;
+}
+
+/* Icon buttons: 40px minimum so they are comfortable touch targets */
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+}
+
+.icon-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Hover only on devices that really hover, so taps don't leave it stuck on */
+@media (hover: hover) {
+  .icon-btn:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-main);
+  }
+}
+
+.icon-btn:focus-visible,
+.avatar-btn:focus-visible,
+.menu-item:focus-visible,
+.resize-handle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* User menu */
+.user-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-btn {
+  width: 36px;
+  height: 36px;
+  margin: 2px;
+  border-radius: 50%;
+  border: 1px solid var(--border-main);
+  background-color: var(--bg-selected);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 210px;
+  padding: 4px;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+}
+
+.menu-label {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-label strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.menu-item--danger,
+.menu-item--danger .material-symbols-outlined {
+  color: var(--danger);
+}
+
+@media (hover: hover) {
+  .menu-item:hover {
+    background-color: var(--bg-hover);
+  }
+}
+
+.menu-divider {
+  height: 1px;
+  margin: 4px 0;
+  background-color: var(--border-main);
+}
+
+/* Content area */
+.content-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar {
+  flex-shrink: 0;
+  overflow-y: auto;
+  background-color: var(--bg-panel);
+  border-right: 1px solid var(--border-main);
+}
+
+.sidebar--hidden {
+  display: none;
+}
+
+/* Phones: the sidebar slides over the editor instead of squeezing it */
+.sidebar--mobile {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(85vw, 320px);
+  z-index: 40;
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform 200ms ease, visibility 0s linear 200ms;
+}
+
+/* transform must be none (not translateX(0)) when open: any other value makes
+   the drawer the containing block for position: fixed children such as
+   context menus and modals rendered inside the tree */
+.sidebar--mobile.is-open {
+  transform: none;
+  visibility: visible;
+  transition: transform 200ms ease, visibility 0s;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar--mobile,
+  .sidebar--mobile.is-open {
+    transition: none;
+  }
+}
+
+.resize-handle {
+  width: 5px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  touch-action: none;
+  background-color: var(--border-main);
+  transition: background-color 0.2s;
+}
+
+@media (hover: hover) {
+  .resize-handle:hover {
+    background-color: var(--border-hover);
+  }
+}
+
+.resize-handle.is-dragging {
+  background-color: var(--primary);
+  transition: none;
+}
+
+.main-pane {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  position: relative;
+  /* Keeps the editor's internal z-indexes (up to 9999) from rising above the
+     mobile drawer and the user menu */
+  isolation: isolate;
+  background-color: var(--bg-main);
+}
+
+/* Settings dialog */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-backdrop--full {
+  padding: 0;
+}
+
+.modal-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 100%);
+  max-height: min(85vh, 760px);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+}
+
+.modal-panel--full {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--border-main);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* ============================================
+   CONTEXT MENU AND TOASTS
+   ============================================ */
+
+/* Taller rows for fingers. !important is needed to beat the inline padding
+   in ContextMenu.tsx */
+@media (pointer: coarse) {
+  .context-menu-item {
+    padding: 12px 14px !important;
+  }
+}
+
+.toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 32px));
+  z-index: 10001; /* above ConfirmModal/InputModal (10000) */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none; /* only the toasts themselves take taps */
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 4px 14px;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  pointer-events: auto;
+}
+
+.toast--error {
+  border-left: 4px solid var(--danger);
+}
+
+.toast--error > .material-symbols-outlined {
+  color: var(--danger);
+  font-size: 20px;
+}
+
+.toast--info > .material-symbols-outlined {
+  color: var(--primary);
+  font-size: 20px;
+}
+
+.toast-message {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+/* ============================================
+   EDITOR STATUS AND LOADING
+   ============================================ */
+
+.conn-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.conn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: var(--text-tertiary);
+}
+
+.conn-status--connected .conn-dot { background-color: var(--success); }
+.conn-status--offline .conn-dot { background-color: var(--danger); }
+.conn-status--connecting .conn-dot,
+.conn-status--loading .conn-dot { background-color: var(--warning); }
+
+/* Not enough room for words next to a breadcrumb on a phone */
+@media (max-width: 767px) {
+  .conn-label { display: none; }
+}
+
+.editor-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--bg-main);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation: none; }
+}
+
+/* ============================================
+   NOTE HEADER AND TOOLBAR
+   ============================================ */
+
+.editor-header {
+  flex-shrink: 0;
+  background-color: var(--bg-main);
+  border-bottom: 1px solid var(--border-main);
+}
+
+.editor-header-inner {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 12px 20px 0;
+}
+
+.note-title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  padding: 2px 0;
+}
+
+.note-title-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.note-title-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.note-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 10px;
+}
+
+.note-meta-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-buttons {
+  display: flex;
+  gap: 2px;
+}
+
+.toolbar-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  /* room for the scrollbar without clipping picker labels */
+  padding-bottom: 6px;
+  margin-bottom: -6px;
+}
+
+.toolbar-more-btn.is-open {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+
+/* The overflow panel is a real Quill toolbar, so it inherits the icon styling,
+   but the base rule forces inline-flex with !important and must be overridden */
+.toolbar-more-panel.ql-toolbar.ql-snow {
+  display: none !important;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  max-width: min(360px, calc(100vw - 24px));
+  padding: 8px !important;
+  background-color: var(--bg-main) !important;
+  border: 1px solid var(--border-main) !important;
+  border-bottom: 1px solid var(--border-main) !important;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.toolbar-more-panel.ql-toolbar.ql-snow.is-open {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  white-space: normal !important;
+  gap: 4px;
+}
+
+.toolbar-more-panel .ql-formats {
+  margin-right: 0 !important;
+}
+
+/* Bigger tap targets for Quill's own buttons on touch screens */
+@media (pointer: coarse) {
+  .ql-toolbar.ql-snow button {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .editor-header-inner { padding: 10px 14px 0; }
+  .note-title-input { font-size: 20px; }
+  .ql-editor { padding: 16px 14px 40vh; }
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.sidebar-inner {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-lg);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn .material-symbols-outlined { font-size: 18px; }
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
+}
+
+.btn-primary:disabled {
+  background-color: var(--bg-hover);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: #fff;
+}
+
+.btn-sm {
+  width: auto;
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn:focus-visible,
+.tree-row-action:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.new-note-btn { margin-bottom: 8px; }
+
+.sidebar-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 4px 4px 10px;
+  margin-top: 4px;
+}
+
+.sidebar-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.icon-btn-sm {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px;
+}
+
+.icon-btn-sm .material-symbols-outlined { font-size: 18px; }
+
+.sidebar-empty {
+  padding: 8px 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Row actions: always visible on touch, on hover or focus with a mouse */
+.tree-row { position: relative; }
+
+.tree-row-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tree-row-action .material-symbols-outlined { font-size: 18px; }
+
+@media (hover: hover) {
+  .tree-row-action { opacity: 0; }
+  .tree-row:hover .tree-row-action,
+  .tree-row-action:focus-visible { opacity: 1; }
+  .tree-row-action:hover { background-color: var(--bg-hover); color: var(--text-main); }
+}
+
+@media (pointer: coarse) {
+  /* Roomier rows and a real tap target for the actions button */
+  .tree-row { min-height: 42px; }
+  .tree-row-action { width: 36px; height: 36px; }
+}
+
+.move-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background-color: var(--bg-selected);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-lg);
+}
+
+.move-banner-text { flex: 1; min-width: 0; }
+
+.move-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.move-banner-title .material-symbols-outlined { font-size: 18px; }
+
+.move-banner-hint {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
 }

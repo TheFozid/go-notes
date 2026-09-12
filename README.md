@@ -14,6 +14,7 @@ A modern collaborative note-taking application with real-time editing, powerful 
 - **Trash system** - Soft-delete with restore capability
 - **💻 Desktop app** - Native Electron app for Linux, Windows, macOS
 - **📱 Android app** - Native mobile client with offline caching
+- **📐 Responsive** - Adapts to desktop landscape and phone portrait
 - **🔒 Production-ready** - Rate limiting, CORS, health checks, optimized performance
 
 ## Screenshots
@@ -23,6 +24,8 @@ A modern collaborative note-taking application with real-time editing, powerful 
   <img src="screenshots/sc2.jpg" width="30%" />
   <img src="screenshots/sc3.jpg" width="30%" />
 </p>
+
+> Screenshots predate the current interface and need retaking.
 
 ---
 
@@ -93,8 +96,8 @@ go-notes includes powerful dual-mode search:
 - Handles large documents efficiently
 
 **Usage:**
-1. Open the left panel (click the panel toggle icon)
-2. Use the Search section
+1. Open the sidebar (click the panel toggle icon, or the menu icon on mobile)
+2. Use the search box at the top
 3. Toggle between "Title + Tags" and "Full Content"
 4. Type your query - results appear instantly
 5. Click any result to open that note

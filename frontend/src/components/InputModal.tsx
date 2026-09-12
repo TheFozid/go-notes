@@ -71,7 +71,7 @@ export default function InputModal({
     >
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-main)',
           borderRadius: '12px',
           padding: '24px',
           width: '100%',
@@ -84,7 +84,7 @@ export default function InputModal({
           margin: '0 0 20px 0',
           fontSize: '18px',
           fontWeight: 600,
-          color: '#111827'
+          color: 'var(--text-main)'
         }}>
           {title}
         </h3>
@@ -100,7 +100,7 @@ export default function InputModal({
             style={{
               width: '100%',
               padding: '10px 12px',
-              border: '1px solid #d1d5db',
+              border: '1px solid var(--border-hover)',
               borderRadius: '8px',
               fontSize: '14px',
               fontFamily: 'inherit',
@@ -109,11 +109,11 @@ export default function InputModal({
               transition: 'all 0.15s'
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#2563eb';
+              e.currentTarget.style.borderColor = 'var(--primary)';
               e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.borderColor = 'var(--border-hover)';
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
@@ -128,8 +128,8 @@ export default function InputModal({
               onClick={onCancel}
               style={{
                 padding: '10px 20px',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
+                backgroundColor: 'var(--bg-hover)',
+                color: 'var(--text-main)',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
@@ -137,8 +137,8 @@ export default function InputModal({
                 fontWeight: 500,
                 transition: 'background-color 0.15s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
             >
               {cancelText}
             </button>
@@ -148,7 +148,7 @@ export default function InputModal({
               disabled={!value.trim()}
               style={{
                 padding: '10px 20px',
-                backgroundColor: value.trim() ? '#2563eb' : '#9ca3af',
+                backgroundColor: value.trim() ? 'var(--primary)' : 'var(--text-tertiary)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -158,10 +158,10 @@ export default function InputModal({
                 transition: 'background-color 0.15s'
               }}
               onMouseEnter={(e) => {
-                if (value.trim()) e.currentTarget.style.backgroundColor = '#1d4ed8';
+                if (value.trim()) e.currentTarget.style.backgroundColor = 'var(--primary-hover)';
               }}
               onMouseLeave={(e) => {
-                if (value.trim()) e.currentTarget.style.backgroundColor = '#2563eb';
+                if (value.trim()) e.currentTarget.style.backgroundColor = 'var(--primary)';
               }}
             >
               {confirmText}

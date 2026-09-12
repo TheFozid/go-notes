@@ -11,6 +11,7 @@ import {
   type Folder,
 } from '../api/workspaces';
 import ContextMenu, { type ContextMenuItem } from './ContextMenu';
+import { notifyError } from '../store/dialogStore';
 import NoteNode from './NoteNode';
 
 interface FolderNodeProps {
@@ -63,7 +64,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       updateFolderInStore(folder.id, { name: newName });
       setShowRenameModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to rename folder');
+      notifyError(err.response?.data?.error || 'Failed to rename folder');
     }
   }
 
@@ -74,7 +75,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       onUpdate();
       setShowDeleteModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to delete folder');
+      notifyError(err.response?.data?.error || 'Failed to delete folder');
     }
   }
 
@@ -84,7 +85,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       addFolder(newFolder);
       setShowAddSubfolderModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to create subfolder');
+      notifyError(err.response?.data?.error || 'Failed to create subfolder');
     }
   }
 
@@ -94,14 +95,14 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       addNote(note);
       setShowAddNoteModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to create note');
+      notifyError(err.response?.data?.error || 'Failed to create note');
     }
   }
   
   async function handleMoveHere() {
     if (!moveMode.active) return;
     if (!canMoveTo(folder.id)) {
-      alert('Cannot move here (would create a cycle or same location)');
+      notifyError('Cannot move here (would create a cycle or same location)');
       return;
     }
     
@@ -110,7 +111,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
         // Move folder - get current name first
         const folderToMove = useWorkspaceStore.getState().getFolderById(moveMode.itemId!);
         if (!folderToMove) {
-          alert('Folder not found');
+          notifyError('Folder not found');
           return;
         }
         await updateFolder(workspaceId, moveMode.itemId!, folderToMove.name, folder.id);
@@ -124,7 +125,7 @@ export default function FolderNode({ folder, workspaceId, onUpdate }: FolderNode
       exitMoveMode();
       onUpdate();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to move item');
+      notifyError(err.response?.data?.error || 'Failed to move item');
     }
   }
 
@@ -141,6 +142,7 @@ const menuItems: ContextMenuItem[] = [
       {/* Folder Header */}
       <div
         onContextMenu={handleContextMenu}
+        className="tree-row"
         onClick={() => {
           if (moveMode.active && moveMode.sourceWorkspaceId === workspaceId) {
             handleMoveHere();
@@ -205,11 +207,29 @@ const menuItems: ContextMenuItem[] = [
           style={{ 
             flex: 1,
             fontSize: '14px',
-            color: 'var(--text-main)'
+            color: 'var(--text-main)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
           }}
         >
           {folder.name}
         </span>
+
+        {!moveMode.active && (
+          <button
+            className="tree-row-action"
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setContextMenu({ x: rect.left, y: rect.bottom + 4 });
+            }}
+            title="Folder actions"
+            aria-label={`Actions for ${folder.name}`}
+          >
+            <span className="material-symbols-outlined">more_horiz</span>
+          </button>
+        )}
       </div>
 
       {/* Folder Children */}
@@ -279,8 +299,8 @@ const menuItems: ContextMenuItem[] = [
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Folder"
-        message={`Are you sure you want to delete "${folder.name}"? This will permanently delete all subfolders and notes inside. This action cannot be undone.`}
-        confirmText="Delete"
+        message={`Delete "${folder.name}" and its subfolders? Notes inside are moved to the trash, where you can restore them.`}
+        confirmText="Delete folder"
         cancelText="Cancel"
         isDangerous={true}
         onConfirm={handleDelete}

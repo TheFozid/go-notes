@@ -1,119 +1,116 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { checkSetup } from './api/auth';
 import useAuthStore from './store/authStore';
 import useWorkspaceStore from './store/workspaceStore';
 import SetupPage from './pages/SetupPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import UserManagement from './components/UserManagement';
 import WorkspaceTree from './components/WorkspaceTree';
 import QuillEditor from './components/QuillEditor';
+import SettingsModal from './components/SettingsModal';
+import UserMenu from './components/UserMenu';
+import DialogHost from './components/DialogHost';
+import { useIsMobile } from './hooks/useMediaQuery';
+import { useConnectionStore, CONNECTION_LABELS } from './store/connectionStore';
+import { useUIStore, clampSidebarWidth, SIDEBAR_MIN, SIDEBAR_MAX } from './store/uiStore';
 import { getWorkspaces, getFolders, getNotes } from './api/workspaces';
 
 const LAST_NOTE_KEY = 'go-notes-last-selected-note';
-
-// Helper for variable string consistency
-const VARS = {
-  bgMain: 'var(--bg-main)',
-  bgPanel: 'var(--bg-panel)',
-  bgHover: 'var(--bg-hover)',
-  border: 'var(--border-main)',
-  borderHover: 'var(--border-hover)',
-  textMain: 'var(--text-main)',
-  textSecondary: 'var(--text-secondary)',
-  textTertiary: 'var(--text-tertiary)',
-  danger: '#ef4444',
-  dangerHover: '#dc2626',
-  dangerLight: '#fee2e2',
-};
+const SIDEBAR_KEY_STEP = 16;
 
 // Main app layout
 function MainApp() {
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [leftWidth, setLeftWidth] = useState(280);
-  const [rightWidth, setRightWidth] = useState(320);
+  const isMobile = useIsMobile();
+
+  const [isResizing, setIsResizing] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-  
-  // Resizing state
-  const [resizing, setResizing] = useState<'left' | 'right' | null>(null);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragStartLeftWidth, setDragStartLeftWidth] = useState(0);
-  const [dragStartRightWidth, setDragStartRightWidth] = useState(0);
+  const dragStart = useRef<{ x: number; width: number } | null>(null);
+
+  const desktopSidebarOpen = useUIStore((state) => state.desktopSidebarOpen);
+  const mobileSidebarOpen = useUIStore((state) => state.mobileSidebarOpen);
+  const sidebarWidth = useUIStore((state) => state.sidebarWidth);
+  const toggleDesktopSidebar = useUIStore((state) => state.toggleDesktopSidebar);
+  const toggleMobileSidebar = useUIStore((state) => state.toggleMobileSidebar);
+  const closeMobileSidebar = useUIStore((state) => state.closeMobileSidebar);
+  const setSidebarWidth = useUIStore((state) => state.setSidebarWidth);
+  const persistSidebarWidth = useUIStore((state) => state.persistSidebarWidth);
 
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const selectedNoteId = useWorkspaceStore((state) => state.selectedNoteId);
+  const connectionStatus = useConnectionStore((state) => state.status);
   const getNotePath = useWorkspaceStore((state) => state.getNotePath);
   const { setWorkspaces, setFolders, setNotes, setSelectedNote, toggleWorkspace, toggleFolder } = useWorkspaceStore();
 
-  // Handle panel resizing
+  const sidebarOpen = isMobile ? mobileSidebarOpen : desktopSidebarOpen;
+
+  function toggleSidebar() {
+    if (isMobile) toggleMobileSidebar();
+    else toggleDesktopSidebar();
+  }
+
+  // On phones, picking a note closes the drawer so the editor is visible
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!resizing) return;
+    if (isMobile) closeMobileSidebar();
+  }, [selectedNoteId, isMobile, closeMobileSidebar]);
 
-      const deltaX = e.clientX - dragStartX;
-
-      if (resizing === 'left') {
-        const newWidth = dragStartLeftWidth + deltaX;
-        // Constrain width between 150px and 600px
-        if (newWidth >= 150 && newWidth <= 600) {
-          setLeftWidth(newWidth);
-        }
-      } else if (resizing === 'right') {
-        const newWidth = dragStartRightWidth - deltaX;
-        // Constrain width between 250px and 600px
-        if (newWidth >= 250 && newWidth <= 600) {
-          setRightWidth(newWidth);
-        }
-      }
+  // Escape closes the mobile drawer
+  useEffect(() => {
+    if (!isMobile || !mobileSidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMobileSidebar();
     };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isMobile, mobileSidebarOpen, closeMobileSidebar]);
 
-    const handleMouseUp = () => {
-      if (resizing) {
-        setResizing(null);
-        document.body.style.cursor = '';
-      }
-    };
+  // Sidebar resizing. Pointer events cover mouse, touch and pen; pointer
+  // capture keeps the drag going when the pointer leaves the handle.
+  function onResizePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragStart.current = { x: e.clientX, width: sidebarWidth };
+    setIsResizing(true);
+  }
 
-    if (resizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      // Disable text selection during drag
-      document.body.style.userSelect = 'none';
-    } else {
-      document.body.style.userSelect = '';
+  function onResizePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragStart.current) return;
+    setSidebarWidth(dragStart.current.width + e.clientX - dragStart.current.x);
+  }
+
+  function endResize(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragStart.current) return;
+    dragStart.current = null;
+    setIsResizing(false);
+    persistSidebarWidth();
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
     }
+  }
 
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [resizing, dragStartX, dragStartLeftWidth, dragStartRightWidth]);
-
-  const startDragLeft = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setResizing('left');
-    setDragStartX(e.clientX);
-    setDragStartLeftWidth(leftWidth);
-  };
-
-  const startDragRight = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setResizing('right');
-    setDragStartX(e.clientX);
-    setDragStartRightWidth(rightWidth);
-  };
+  function onResizeKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setSidebarWidth(clampSidebarWidth(sidebarWidth - SIDEBAR_KEY_STEP));
+      persistSidebarWidth();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setSidebarWidth(clampSidebarWidth(sidebarWidth + SIDEBAR_KEY_STEP));
+      persistSidebarWidth();
+    }
+  }
 
   // Load data and restore last note on mount
   useEffect(() => {
     async function loadAndRestore() {
       try {
         // Load all data
-        const workspacesData = await getWorkspaces();
+        // Guarded like folders and notes below: a Go handler returning a nil
+        // slice sends null, which would crash the workspace tree
+        const fetched = await getWorkspaces();
+        const workspacesData = Array.isArray(fetched) ? fetched : [];
         setWorkspaces(workspacesData);
 
         const allFolders: any[] = [];
@@ -124,7 +121,7 @@ function MainApp() {
             getFolders(ws.id),
             getNotes(ws.id),
           ]);
-          
+
           if (folders && Array.isArray(folders)) {
             allFolders.push(...folders);
           }
@@ -139,17 +136,17 @@ function MainApp() {
 
         // Restore last selected note
         const lastNoteId = localStorage.getItem(LAST_NOTE_KEY);
-        
+
         if (lastNoteId) {
           const noteId = parseInt(lastNoteId, 10);
           const note = allNotes.find(n => n.id === noteId && !n.is_trashed);
-          
+
           if (note) {
             console.log('[MainApp] Restoring note:', note);
-            
+
             // Expand the workspace
             toggleWorkspace(note.workspace_id);
-            
+
             // Expand all parent folders
             if (note.folder_id) {
               const expandFolderHierarchy = (folderId: number) => {
@@ -163,10 +160,10 @@ function MainApp() {
               };
               expandFolderHierarchy(note.folder_id);
             }
-            
-// Select the note immediately
-setSelectedNote(noteId);
-console.log('[MainApp] Note restored:', noteId);
+
+            // Select the note immediately
+            setSelectedNote(noteId);
+            console.log('[MainApp] Note restored:', noteId);
           } else {
             console.log('[MainApp] Note no longer exists, clearing');
             localStorage.removeItem(LAST_NOTE_KEY);
@@ -195,240 +192,115 @@ console.log('[MainApp] Note restored:', noteId);
     window.location.href = basename + '/login';
   };
 
-  const pathParts = selectedNoteId ? getNotePath(selectedNoteId).split(' > ') : [];
-  
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
+
+  const allPathParts = selectedNoteId ? getNotePath(selectedNoteId).split(' > ') : [];
+  // Phones only have room for the note title
+  const pathParts = isMobile ? allPathParts.slice(-1) : allPathParts;
+
+  const sidebarClass = [
+    'sidebar',
+    isMobile ? 'sidebar--mobile' : '',
+    isMobile && mobileSidebarOpen ? 'is-open' : '',
+    !isMobile && !desktopSidebarOpen ? 'sidebar--hidden' : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <div style={{ 
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      backgroundColor: VARS.bgMain,
-      color: VARS.textMain
-    }}>
-      {/* Modern Top Bar */}
-      <div style={{ 
-        height: '56px',
-        backgroundColor: VARS.bgMain,
-        padding: '0 16px',
-        borderBottom: `1px solid ${VARS.border}`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        flexShrink: 0
-      }}>
-        {/* Left: Panel toggle */}
-        <button 
-          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            color: VARS.textSecondary,
-            borderRadius: '6px',
-            transition: 'all 0.15s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = VARS.bgHover;
-            e.currentTarget.style.color = VARS.textMain;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = VARS.textSecondary;
-          }}
-          title="Toggle left panel"
+    <div className={`app-shell${isResizing ? ' is-resizing' : ''}`}>
+      {/* Top bar */}
+      <header className="topbar">
+        <button
+          className="icon-btn"
+          onClick={toggleSidebar}
+          aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          aria-expanded={sidebarOpen}
+          aria-controls="app-sidebar"
+          title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-            {leftPanelOpen ? 'left_panel_close' : 'left_panel_open'}
+          <span className="material-symbols-outlined">
+            {isMobile ? 'menu' : sidebarOpen ? 'left_panel_close' : 'left_panel_open'}
           </span>
         </button>
 
-        {/* Center: Breadcrumb path or app title */}
-        {selectedNoteId ? (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            overflow: 'hidden',
-            fontSize: '14px'
-          }}>
-            {pathParts.map((part, index) => (
-              <div key={index} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                minWidth: 0,
-                maxWidth: index === pathParts.length - 1 ? 'none' : '200px'
-              }}>
-                <span style={{
-                  color: index === pathParts.length - 1 ? VARS.textMain : VARS.textSecondary,
-                  fontWeight: index === pathParts.length - 1 ? 600 : 400,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {part}
-                </span>
-                {index < pathParts.length - 1 && (
-                  <span className="material-symbols-outlined" style={{ 
-                    fontSize: '16px',
-                    color: VARS.textTertiary,
-                    flexShrink: 0
-                  }}>
-                    chevron_right
+        {pathParts.length > 0 ? (
+          <nav className="breadcrumb" aria-label="Note location">
+            {pathParts.map((part, index) => {
+              const isLast = index === pathParts.length - 1;
+              return (
+                <span key={index} className="breadcrumb-item">
+                  <span className={`breadcrumb-part${isLast ? ' breadcrumb-part--current' : ''}`}>
+                    {part}
                   </span>
-                )}
-              </div>
-            ))}
-          </div>
+                  {!isLast && (
+                    <span className="material-symbols-outlined breadcrumb-sep" aria-hidden="true">
+                      chevron_right
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </nav>
         ) : (
-          <div style={{
-            flex: 1,
-            fontSize: '16px',
-            fontWeight: 600,
-            color: VARS.textMain,
-            letterSpacing: '-0.01em'
-          }}>
-            go-notes
-          </div>
+          <div className="app-title">go-notes</div>
         )}
 
-        {/* Right: Actions */}
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          <button 
-            onClick={() => setRightPanelOpen(!rightPanelOpen)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              color: VARS.textSecondary,
-              borderRadius: '6px',
-              transition: 'all 0.15s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = VARS.bgHover;
-              e.currentTarget.style.color = VARS.textMain;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = VARS.textSecondary;
-            }}
-            title="Toggle right panel (User Management)"
+        {connectionStatus !== 'idle' && (
+          <span
+            className={`conn-status conn-status--${connectionStatus}`}
+            title={CONNECTION_LABELS[connectionStatus]}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>settings</span>
-          </button>
-          
-          <button 
-            onClick={handleLogout}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              color: VARS.danger,
-              borderRadius: '6px',
-              transition: 'all 0.15s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = VARS.dangerLight;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-            title="Logout"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>logout</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Content Area */}
-      <div style={{ 
-        flex: 1,
-        display: 'flex',
-        overflow: 'hidden',
-        position: 'relative',
-        userSelect: resizing ? 'none' : 'auto'
-      }}>
-        {/* Left Panel */}
-        {leftPanelOpen && (
-          <div style={{ 
-            width: leftWidth,
-            backgroundColor: VARS.bgPanel,
-            borderRight: `1px solid ${VARS.border}`,
-            overflowY: 'auto',
-            flexShrink: 0
-          }}>
-            <WorkspaceTree />
-          </div>
+            <span className="conn-dot" aria-hidden="true" />
+            {/* Label is desktop-only; the dot alone carries it on phones */}
+            <span className="conn-label">{CONNECTION_LABELS[connectionStatus]}</span>
+          </span>
         )}
 
-        {/* Left Drag Handle */}
-        {leftPanelOpen && (
+        <UserMenu onOpenSettings={() => setSettingsOpen(true)} onLogout={handleLogout} />
+      </header>
+
+      {/* Content area */}
+      <div className="content-area">
+        {isMobile && mobileSidebarOpen && (
           <div
-            onMouseDown={startDragLeft}
-            style={{
-              width: '5px',
-              cursor: 'col-resize',
-              backgroundColor: VARS.border,
-              flexShrink: 0,
-              zIndex: 10,
-              transition: resizing ? 'none' : 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.borderHover; }}
-            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.border; }}
+            className="sidebar-backdrop"
+            onClick={closeMobileSidebar}
+            aria-hidden="true"
           />
         )}
 
-        {/* Main Content */}
-        <div style={{ 
-          flex: 1,
-          overflowY: 'auto',
-          position: 'relative',
-          backgroundColor: VARS.bgMain
-        }}>
+        <aside
+          id="app-sidebar"
+          className={sidebarClass}
+          style={isMobile ? undefined : { width: sidebarWidth }}
+        >
+          <WorkspaceTree />
+        </aside>
+
+        {!isMobile && desktopSidebarOpen && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            aria-valuenow={sidebarWidth}
+            aria-valuemin={SIDEBAR_MIN}
+            aria-valuemax={SIDEBAR_MAX}
+            tabIndex={0}
+            className={`resize-handle${isResizing ? ' is-dragging' : ''}`}
+            onPointerDown={onResizePointerDown}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={endResize}
+            onPointerCancel={endResize}
+            onLostPointerCapture={endResize}
+            onKeyDown={onResizeKeyDown}
+          />
+        )}
+
+        <main className="main-pane">
           <QuillEditor />
-        </div>
-
-        {/* Right Drag Handle */}
-        {rightPanelOpen && (
-          <div
-            onMouseDown={startDragRight}
-            style={{
-              width: '5px',
-              cursor: 'col-resize',
-              backgroundColor: VARS.border,
-              flexShrink: 0,
-              zIndex: 10,
-              transition: resizing ? 'none' : 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.borderHover; }}
-            onMouseLeave={(e) => { if (!resizing) e.currentTarget.style.backgroundColor = VARS.border; }}
-          />
-        )}
-
-        {/* Right Panel */}
-        {rightPanelOpen && (
-          <div style={{ 
-            width: rightWidth,
-            backgroundColor: VARS.bgPanel,
-            borderLeft: `1px solid ${VARS.border}`,
-            padding: '16px',
-            overflowY: 'auto',
-            flexShrink: 0
-          }}>
-            <UserManagement />
-          </div>
-        )}
+        </main>
       </div>
+
+      <SettingsModal isOpen={settingsOpen} onClose={closeSettings} fullScreen={isMobile} />
     </div>
   );
 }
@@ -472,29 +344,29 @@ function AuthRoutes() {
 
   return (
     <Routes>
-      <Route 
-        path="/setup" 
+      <Route
+        path="/setup"
         element={
           setupComplete ? <Navigate to="/login" replace /> : <SetupPage />
-        } 
+        }
       />
 
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           !setupComplete ? <Navigate to="/setup" replace /> :
           isAuthenticated ? <Navigate to="/" replace /> :
           <LoginPage />
-        } 
+        }
       />
 
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
           <ProtectedRoute>
             <MainApp />
           </ProtectedRoute>
-        } 
+        }
       />
 
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -509,6 +381,7 @@ function App() {
   return (
     <BrowserRouter basename={basename}>
       <AuthRoutes />
+      <DialogHost />
     </BrowserRouter>
   );
 }

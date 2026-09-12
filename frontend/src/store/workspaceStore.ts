@@ -128,9 +128,27 @@ const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       });
     }
     
+    /*
+     * The backend (DeleteFolder in db.go) trashes the notes and reparents them
+     * to the deleted folder's parent, so they stay restorable. Dropping them
+     * from the store made them vanish from the trash until a page reload.
+     */
+    const removedFolder = state.folders.find((f) => f.id === id);
+    const parentId = removedFolder?.parent_id ?? null;
+    const trashedAt = new Date().toISOString();
+
     return {
       folders: state.folders.filter((f) => !toRemove.has(f.id)),
-      notes: state.notes.filter((n) => n.folder_id === null || !toRemove.has(n.folder_id)),
+      notes: state.notes.map((n) =>
+        n.folder_id !== null && toRemove.has(n.folder_id)
+          ? {
+              ...n,
+              folder_id: parentId,
+              is_trashed: true,
+              trashed_at: n.is_trashed ? n.trashed_at : trashedAt,
+            }
+          : n
+      ),
     };
   }),
   

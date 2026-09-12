@@ -1,40 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
+import { NOTE_COLORS, DEFAULT_NOTE_COLOR } from '../utils/noteColors';
 
 interface ColorPickerProps {
   currentColor: string;
   onColorChange: (color: string) => void;
+  isDark: boolean;
 }
 
-const LIGHT_COLORS = [
-  '#FFFFFF', '#FFF9C4', '#FFE0E0',
-  '#D1E7FF', '#D4EDDA', '#FFE5CC',
-  '#E8DAEF', '#D5F5E3', '#FADBD8'
-];
-
-// Darker, desaturated versions for visibility against dark backgrounds
-const DARK_COLORS = [
-  '#1f2937', '#373020', '#372929',
-  '#203037', '#29372e', '#372d22',
-  '#2f2937', '#29372e', '#372929'
-];
-
-const COLOR_NAMES: Record<string, string> = {
-  '#FFFFFF': 'White',
-  '#FFF9C4': 'Yellow',
-  '#FFE0E0': 'Pink',
-  '#D1E7FF': 'Blue',
-  '#D4EDDA': 'Green',
-  '#FFE5CC': 'Orange',
-  '#E8DAEF': 'Purple',
-  '#D5F5E3': 'Mint',
-  '#FADBD8': 'Peach'
-};
-
-interface ColorPickerProps {
-  currentColor: string;
-  onColorChange: (color: string) => void;
-  isDark: boolean; // Added prop
-}
+/*
+ * Palettes come from utils/noteColors so a swatch matches what the editor
+ * actually shows. This file used to keep its own dark list which had drifted
+ * from that one: a different dark yellow, and green and mint duplicated.
+ */
+const LIGHT_COLORS = NOTE_COLORS.map((c) => c.value);
+const DARK_COLORS = NOTE_COLORS.map((c) => c.dark);
+const COLOR_NAMES: Record<string, string> = Object.fromEntries(
+  NOTE_COLORS.map((c) => [c.value, c.name])
+);
 
 function ColorPicker({ currentColor, onColorChange, isDark }: ColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +26,9 @@ function ColorPicker({ currentColor, onColorChange, isDark }: ColorPickerProps) 
   const activePalette = isDark ? DARK_COLORS : LIGHT_COLORS;
   
   // Find the index of the current color in the canonical (light) palette
-  const currentIndex = LIGHT_COLORS.indexOf(currentColor);
+  const currentIndex = LIGHT_COLORS.findIndex(
+    (c) => c.toUpperCase() === (currentColor || DEFAULT_NOTE_COLOR).toUpperCase()
+  );
   
   // Determine the visual color to show on the main button
   const visualColor = (isDark && currentIndex !== -1) ? DARK_COLORS[currentIndex] : currentColor;
@@ -83,7 +67,7 @@ function ColorPicker({ currentColor, onColorChange, isDark }: ColorPickerProps) 
           e.currentTarget.style.transform = 'scale(1.05)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = '#e5e7eb';
+          e.currentTarget.style.borderColor = 'var(--border-main)';
           e.currentTarget.style.transform = 'scale(1)';
         }}
         title={`Note color: ${COLOR_NAMES[currentColor] || 'Custom'}`}

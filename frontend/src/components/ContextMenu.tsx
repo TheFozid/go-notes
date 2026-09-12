@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export interface ContextMenuItem {
   label: string;
@@ -15,6 +15,20 @@ interface ContextMenuProps {
 
 export default function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ left: x, top: y });
+
+  // Keep the whole menu on screen: a long-press near the right or bottom edge
+  // of a phone would otherwise push it partly off the display
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!menu) return;
+    const { width, height } = menu.getBoundingClientRect();
+    const margin = 8;
+    setPosition({
+      left: Math.max(margin, Math.min(x, window.innerWidth - width - margin)),
+      top: Math.max(margin, Math.min(y, window.innerHeight - height - margin)),
+    });
+  }, [x, y]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -43,10 +57,10 @@ export default function ContextMenu({ x, y, items, onClose }: ContextMenuProps) 
       ref={menuRef}
       style={{
         position: 'fixed',
-        left: `${x}px`,
-        top: `${y}px`,
-        backgroundColor: '#ffffff',
-        border: '1px solid #e5e7eb',
+        left: `${position.left}px`,
+        top: `${position.top}px`,
+        backgroundColor: 'var(--bg-main)',
+        border: '1px solid var(--border-main)',
         borderRadius: '8px',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         zIndex: 1000,
@@ -58,6 +72,7 @@ export default function ContextMenu({ x, y, items, onClose }: ContextMenuProps) 
       {items.map((item, index) => (
         <div
           key={index}
+          className="context-menu-item"
           onClick={() => {
             item.onClick();
             onClose();
@@ -65,7 +80,7 @@ export default function ContextMenu({ x, y, items, onClose }: ContextMenuProps) 
           style={{
             padding: '8px 12px',
             cursor: 'pointer',
-            color: item.danger ? '#ef4444' : '#374151',
+            color: item.danger ? 'var(--danger)' : 'var(--text-main)',
             backgroundColor: 'transparent',
             borderRadius: '6px',
             fontSize: '14px',
@@ -73,7 +88,7 @@ export default function ContextMenu({ x, y, items, onClose }: ContextMenuProps) 
             fontWeight: 500
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = item.danger ? '#fee2e2' : '#f3f4f6';
+            e.currentTarget.style.backgroundColor = item.danger ? 'var(--danger-light)' : 'var(--bg-hover)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';

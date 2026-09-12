@@ -1,6 +1,6 @@
 # go-notes Roadmap
 
-**Last Updated:** 2025-11-24
+**Last Updated:** 2026-09-12
 **Purpose:** Future development plans and phases
 
 ---
@@ -98,18 +98,20 @@
 
 **Benefits:** Faster note discovery, better search UX
 
-**Note:** Full-text content search is not planned due to binary Yjs document storage. Title + tag search provides good coverage.
+**Note:** Full-text content search is implemented. The client mirrors the note's
+plain text to `notes.content_text` two seconds after each change, and `/search`
+queries it using a GIN index.
 
 ---
 
 ### Mobile Responsive Design
-**Priority:** Low  
-**Estimated Time:** 3-4 sessions (~9-12 hours)
+**Status:** Mostly done, not yet verified on a device
 
-- [ ] Responsive breakpoints (mobile <768px, tablet 768-1024px, desktop >1024px)
-- [ ] Touch-friendly UI (larger tap targets, swipe gestures)
-- [ ] Mobile menu system (hamburger menu, collapsible panels)
-- [ ] Mobile-optimized editor toolbar
+- [x] Responsive breakpoint at 768px
+- [x] Touch-friendly UI (larger tap targets, visible row action buttons)
+- [x] Mobile menu system (hamburger, slide-over drawer)
+- [x] Mobile-optimized editor toolbar (overflow "More" panel)
+- [ ] Swipe gestures
 - [ ] PWA support for offline access
 - [ ] Test on iOS and Android devices
 
@@ -367,10 +369,11 @@
 ## Decision Points
 
 ### Content Search
-**Decision:** Not implementing full-text content search  
-**Reason:** Yjs documents are binary CRDT data, not easily searchable  
-**Alternative:** Title + tag search provides good coverage  
-**Future:** Could add content_text column if demand is high (requires sync mechanism)
+**Decision:** Implemented, with client-side text extraction
+**How:** The editor posts plain text to `/notes/:id/search-text` on a 2s debounce;
+Postgres indexes it with GIN
+**Caveat:** Notes not opened since this landed have no `content_text` yet
+
 
 ### Mobile Apps
 **Decision:** Web-first, native apps optional  

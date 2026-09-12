@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
+import { notifyError } from '../store/dialogStore';
 import InputModal from './InputModal';
 import {
   createWorkspace,
+  createNote,
 } from '../api/workspaces';
 import WorkspaceNode from './WorkspaceNode';
 import TagsWorkspace from './TagsWorkspace';
@@ -10,158 +12,120 @@ import SearchPanel from './SearchPanel';
 
 export default function WorkspaceTree() {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [creatingNote, setCreatingNote] = useState(false);
   const {
     workspaces,
     addWorkspace,
+    addNote,
+    setSelectedNote,
+    selectedWorkspaceId,
     moveMode,
     exitMoveMode,
   } = useWorkspaceStore();
 
+  const sortedWorkspaces = [...workspaces].sort((a, b) => a.name.localeCompare(b.name));
+
+  // New notes land in the workspace you are already in, falling back to the first
+  const targetWorkspace =
+    sortedWorkspaces.find((w) => w.id === selectedWorkspaceId) ?? sortedWorkspaces[0];
+
   async function handleCreateWorkspace(name: string) {
-    setError(null);
     try {
       const workspace = await createWorkspace(name);
       addWorkspace({ ...workspace, role: 'owner' });
       setShowCreateModal(false);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create workspace');
+      notifyError(err.response?.data?.error || 'Could not create the workspace');
+    }
+  }
+
+  async function handleNewNote() {
+    if (!targetWorkspace || creatingNote) return;
+    setCreatingNote(true);
+    try {
+      const note = await createNote(targetWorkspace.id, 'Untitled', null);
+      addNote(note);
+      // Open it straight away: a new note used to appear in the tree but you
+      // still had to find and click it
+      setSelectedNote(note.id);
+      const { expandedWorkspaces, toggleWorkspace } = useWorkspaceStore.getState();
+      if (!expandedWorkspaces.has(targetWorkspace.id)) toggleWorkspace(targetWorkspace.id);
+    } catch (err: any) {
+      notifyError(err.response?.data?.error || 'Could not create the note');
+    } finally {
+      setCreatingNote(false);
     }
   }
 
   return (
-    <div style={{ padding: '16px' }}>
-      {/* Move Mode Banner */}
+    <div className="sidebar-inner">
       {moveMode.active && (
-        <div style={{
-          padding: '12px',
-          marginBottom: '16px',
-          backgroundColor: 'var(--bg-selected)',
-          border: '2px solid var(--primary)',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px'
-        }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ 
-              fontWeight: 600, 
-              fontSize: '14px', 
-              color: 'var(--primary)', 
-              marginBottom: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                drive_file_move
-              </span>
+        <div className="move-banner" role="status">
+          <div className="move-banner-text">
+            <div className="move-banner-title">
+              <span className="material-symbols-outlined" aria-hidden="true">drive_file_move</span>
               Moving {moveMode.itemType}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-              Click a folder to move here, or workspace title to move to root
+            <div className="move-banner-hint">
+              Choose a folder to move into, or the workspace name for the top level
             </div>
           </div>
-          <button
-            onClick={exitMoveMode}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 500,
-              transition: 'background-color 0.15s',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-              close
-            </span>
+          <button className="btn btn-danger btn-sm" onClick={exitMoveMode}>
             Cancel
           </button>
         </div>
       )}
-      
-      {/* Create Workspace Button */}
-      <button
-        onClick={() => setShowCreateModal(true)}
-        style={{
-          width: '100%',
-          padding: '10px 16px',
-          marginBottom: '16px',
-          backgroundColor: '#2563eb',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontWeight: 500,
-          fontSize: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          transition: 'background-color 0.15s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
-        Create Workspace
-      </button>
 
-      {/* Error display */}
-      {error && (
-        <div style={{
-          padding: '12px',
-          marginBottom: '16px',
-          backgroundColor: 'var(--danger-light)',
-          border: '1px solid var(--danger)',
-          borderRadius: '8px',
-          color: 'var(--danger)',
-          fontSize: '13px'
-        }}>
-          {error}
-        </div>
-      )}
-      {/* Workspaces List */}
-      <div style={{ marginBottom: '16px' }}>
-        {[...workspaces]
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((workspace) => (
-          <WorkspaceNode
-            key={workspace.id}
-            workspace={workspace}
-            onUpdate={() => {}}
-          />
-        ))}
-      </div>
-
-      {/* Tags Workspace */}
-      <TagsWorkspace />
-      
-      {/* Search Panel */}
+      {/* Search first: the most frequent way in */}
       <SearchPanel />
 
-      {/* Create Workspace Modal */}
+      <button
+        className="btn btn-primary new-note-btn"
+        onClick={handleNewNote}
+        disabled={!targetWorkspace || creatingNote}
+        title={targetWorkspace ? `New note in ${targetWorkspace.name}` : 'Create a workspace first'}
+      >
+        <span className="material-symbols-outlined" aria-hidden="true">add</span>
+        New note
+      </button>
+
+      <div className="sidebar-section-head">
+        <span className="sidebar-section-title">Workspaces</span>
+        <button
+          className="icon-btn icon-btn-sm"
+          onClick={() => setShowCreateModal(true)}
+          title="Create workspace"
+          aria-label="Create workspace"
+        >
+          <span className="material-symbols-outlined">add</span>
+        </button>
+      </div>
+
+      {sortedWorkspaces.length === 0 ? (
+        <p className="sidebar-empty">
+          No workspaces yet. Create one to start taking notes.
+        </p>
+      ) : (
+        <div className="workspace-list">
+          {sortedWorkspaces.map((workspace) => (
+            <WorkspaceNode
+              key={workspace.id}
+              workspace={workspace}
+              onUpdate={() => {}}
+            />
+          ))}
+        </div>
+      )}
+
+      <TagsWorkspace />
+
       <InputModal
         isOpen={showCreateModal}
-        title="Create Workspace"
+        title="Create workspace"
         placeholder="Workspace name"
         confirmText="Create"
         onConfirm={handleCreateWorkspace}
-        onCancel={() => {
-          setShowCreateModal(false);
-          setError(null);
-        }}
+        onCancel={() => setShowCreateModal(false)}
       />
     </div>
   );

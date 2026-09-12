@@ -1,6 +1,6 @@
 # go-notes Architecture Overview
 
-**Last Updated:** 2025-11-24  
+**Last Updated:** 2026-09-12
 **Status:** Phase 5 Complete + UI Polish ✅  
 **Current Phase:** Phase 6 Planning
 
@@ -10,7 +10,9 @@
 
 - **Backend:** Go 1.25 (Gin framework), PostgreSQL 15
 - **Content Sync:** Hocuspocus 2.15.3 (Node.js WebSocket server)
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Zustand, Quill
+- **Frontend:** React 19, TypeScript, Vite, Zustand, Quill
+  (Tailwind is configured but unused: components style themselves with inline
+  styles and classes in `index.css`)
 - **Deployment:** Docker Compose (3 services: db, backend, yjs)
 - **Authentication:** JWT with database validation
 
@@ -74,7 +76,7 @@
 
 **Persistence:**
 - PostgreSQL Database extension stores Yjs documents
-- Each note = one Yjs document in `yjs_documents` table
+- Each note = one Yjs document, stored as bytes in `notes.content`
 - Room ID format: `w{workspace_id}_n{note_id}`
 - Automatic document lifecycle management
 
@@ -90,21 +92,30 @@
 
 ### Frontend (React + Quill + Hocuspocus)
 
-**Layout:** CSS Grid (3 columns × 2 rows)
+**Layout:** Flexbox, responsive at 768px
+
+Desktop (wider than 768px) — resizable sidebar beside the editor:
 ```
 ┌──────────────────────────────────────────────────────┐
-│  TOP BAR (60px) - User menu, toggles                 │
-├─────────┬──────────────────────────┬─────────────────┤
-│  LEFT   │   MAIN CONTENT           │   RIGHT         │
-│  PANEL  │   ┌──────────────────┐   │   PANEL         │
-│ (250px) │   │ Tags + Color     │   │  (250px)        │
-│         │   ├──────────────────┤   │                 │
-│         │   │ Quill Editor     │   │                 │
-│         │   │                  │   │                 │
-│         │   └──────────────────┘   │                 │
-│         │   [Toolbar - 60px]       │                 │
-└─────────┴──────────────────────────┴─────────────────┘
+│ TOP BAR (56px) - sidebar toggle, breadcrumb,         │
+│                  sync status, account menu           │
+├──────────────┬───────────────────────────────────────┤
+│  SIDEBAR     │  Note title                           │
+│  (resizable, │  Tags · colour · undo/redo            │
+│   remembered)│  Formatting toolbar · [More]          │
+│              │  ─────────────────────────────────    │
+│  Search      │  Quill editor                         │
+│  New note    │  (text column capped for readability, │
+│  Workspaces  │   note colour fills the pane)         │
+│  Tags        │                                       │
+└──────────────┴───────────────────────────────────────┘
 ```
+
+Mobile (768px and under) — the sidebar becomes a slide-over drawer with a
+backdrop, closing when a note is picked. Settings open full screen.
+
+Account settings live in a dialog opened from the account menu; there is no
+longer a docked right panel.
 
 **Completed Features:**
 - ✅ Authentication (setup, login, logout, protected routes)
@@ -215,14 +226,13 @@ CREATE TABLE note_tags (
 );
 ```
 
-**yjs_documents** (Managed by Hocuspocus)
-```sql
-CREATE TABLE yjs_documents (
-  name VARCHAR(255) PRIMARY KEY,  -- Room ID (e.g., "w2_n3")
-  data BYTEA NOT NULL,             -- Yjs document binary
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+**Note content** (managed by the Hocuspocus server, `yjs-server/server.js`)
+
+Content is not held in a separate table. The Yjs document is written back to the
+`notes` row it belongs to:
+- `notes.content` — the binary Yjs document
+- `notes.content_text` — plain text extracted by the client, for full-text search
+
 
 
 ---

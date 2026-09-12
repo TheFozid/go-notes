@@ -24,13 +24,13 @@ function TagNode({ tagName, noteCount }: TagNodeProps) {
           padding: '6px 12px',
           cursor: 'pointer',
           borderRadius: '6px',
-          backgroundColor: isExpanded ? '#eff6ff' : 'transparent',
+          backgroundColor: isExpanded ? 'var(--bg-selected)' : 'transparent',
           transition: 'background-color 0.15s'
         }}
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={(e) => {
           if (!isExpanded) {
-            e.currentTarget.style.backgroundColor = '#f9fafb';
+            e.currentTarget.style.backgroundColor = 'var(--bg-panel)';
           }
         }}
         onMouseLeave={(e) => {
@@ -42,7 +42,7 @@ function TagNode({ tagName, noteCount }: TagNodeProps) {
         <span style={{ 
           marginRight: '8px',
           userSelect: 'none',
-          color: '#6b7280',
+          color: 'var(--text-secondary)',
           fontSize: '12px',
           width: '16px',
           display: 'flex',
@@ -56,7 +56,7 @@ function TagNode({ tagName, noteCount }: TagNodeProps) {
         <span style={{ marginRight: '8px' }}>
           <span className="material-symbols-outlined" style={{ 
             fontSize: '18px',
-            color: isExpanded ? '#2563eb' : '#9ca3af'
+            color: isExpanded ? 'var(--primary)' : 'var(--text-tertiary)'
           }}>
             label
           </span>
@@ -64,15 +64,15 @@ function TagNode({ tagName, noteCount }: TagNodeProps) {
         <span style={{ 
           flex: 1,
           fontSize: '14px',
-          color: isExpanded ? '#111827' : '#4b5563',
+          color: isExpanded ? 'var(--text-main)' : 'var(--text-secondary)',
           fontWeight: isExpanded ? 500 : 400
         }}>
           {tagName}
         </span>
         <span style={{ 
           fontSize: '12px',
-          color: '#9ca3af',
-          backgroundColor: isExpanded ? '#dbeafe' : '#f3f4f6',
+          color: 'var(--text-tertiary)',
+          backgroundColor: isExpanded ? 'var(--primary-light)' : 'var(--bg-hover)',
           padding: '2px 8px',
           borderRadius: '12px',
           fontWeight: 500
@@ -100,7 +100,7 @@ function TagNode({ tagName, noteCount }: TagNodeProps) {
           {notes.length === 0 && (
             <div style={{ 
               padding: '12px',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               fontSize: '13px',
               textAlign: 'center'
             }}>
@@ -128,7 +128,7 @@ export default function TagsWorkspace() {
     <div style={{ 
       marginTop: '16px',
       paddingTop: '16px',
-      borderTop: '1px solid #e5e7eb'
+      borderTop: '1px solid var(--border-main)'
     }}>
       {/* #Tags Header */}
       <div
@@ -138,13 +138,13 @@ export default function TagsWorkspace() {
           padding: '8px 12px',
           cursor: 'pointer',
           borderRadius: '6px',
-          backgroundColor: isExpanded ? '#f3f4f6' : 'transparent',
+          backgroundColor: isExpanded ? 'var(--bg-hover)' : 'transparent',
           transition: 'background-color 0.15s'
         }}
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={(e) => {
           if (!isExpanded) {
-            e.currentTarget.style.backgroundColor = '#f9fafb';
+            e.currentTarget.style.backgroundColor = 'var(--bg-panel)';
           }
         }}
         onMouseLeave={(e) => {
@@ -156,7 +156,7 @@ export default function TagsWorkspace() {
         <span style={{ 
           marginRight: '8px',
           userSelect: 'none',
-          color: '#6b7280',
+          color: 'var(--text-secondary)',
           fontSize: '12px',
           width: '16px',
           display: 'flex',
@@ -168,7 +168,7 @@ export default function TagsWorkspace() {
           </span>
         </span>
         <span style={{ marginRight: '8px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#6b7280' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--text-secondary)' }}>
             sell
           </span>
         </span>
@@ -176,14 +176,14 @@ export default function TagsWorkspace() {
           flex: 1,
           fontWeight: 600,
           fontSize: '14px',
-          color: '#111827'
+          color: 'var(--text-main)'
         }}>
           Tags
         </span>
         <span style={{ 
           fontSize: '12px',
-          color: '#9ca3af',
-          backgroundColor: '#f3f4f6',
+          color: 'var(--text-tertiary)',
+          backgroundColor: 'var(--bg-hover)',
           padding: '2px 8px',
           borderRadius: '12px',
           fontWeight: 500
@@ -198,7 +198,7 @@ export default function TagsWorkspace() {
           {userTags.length === 0 ? (
             <div style={{ 
               padding: '12px',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               fontSize: '13px',
               textAlign: 'center'
             }}>

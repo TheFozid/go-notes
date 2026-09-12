@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser, type User } from '../api/users';
 import useAuthStore from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
+import { confirmDialog } from '../store/dialogStore';
 
 type Tab = 'account' | 'users';
 
@@ -93,7 +94,15 @@ export default function UserManagement() {
   }
 
   async function handleDeleteUser(userId: number, isCurrentUser: boolean) {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    const confirmed = await confirmDialog({
+      title: 'Delete user',
+      message: isCurrentUser
+        ? 'Delete your own account? You will be logged out. This cannot be undone.'
+        : 'Delete this user? This cannot be undone.',
+      confirmText: 'Delete',
+      isDangerous: true,
+    });
+    if (!confirmed) return;
     
     setError(null);
     try {
@@ -140,7 +149,13 @@ export default function UserManagement() {
 
   async function handleDeleteAccount() {
     if (!user) return;
-    if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
+    const confirmed = await confirmDialog({
+      title: 'Delete account',
+      message: 'Delete your account? You will be logged out. This cannot be undone.',
+      confirmText: 'Delete account',
+      isDangerous: true,
+    });
+    if (!confirmed) return;
     
     setError(null);
     try {
@@ -159,7 +174,7 @@ export default function UserManagement() {
       {/* Tabs */}
       <div style={{ 
         display: 'flex',
-        borderBottom: '1px solid #e5e7eb',
+        borderBottom: '1px solid var(--border-main)',
         marginBottom: '16px',
         gap: '4px'
       }}>
@@ -172,7 +187,7 @@ export default function UserManagement() {
             background: 'transparent',
             cursor: 'pointer',
             fontWeight: activeTab === 'account' ? 600 : 400,
-            color: activeTab === 'account' ? '#2563eb' : '#6b7280',
+            color: activeTab === 'account' ? 'var(--primary)' : 'var(--text-secondary)',
             fontSize: '14px',
             transition: 'all 0.15s'
           }}
@@ -189,7 +204,7 @@ export default function UserManagement() {
               background: 'transparent',
               cursor: 'pointer',
               fontWeight: activeTab === 'users' ? 600 : 400,
-              color: activeTab === 'users' ? '#2563eb' : '#6b7280',
+              color: activeTab === 'users' ? 'var(--primary)' : 'var(--text-secondary)',
               fontSize: '14px',
               transition: 'all 0.15s'
             }}
@@ -204,10 +219,10 @@ export default function UserManagement() {
         <div style={{
           padding: '12px',
           marginBottom: '16px',
-          backgroundColor: '#fee2e2',
-          border: '1px solid #fecaca',
+          backgroundColor: 'var(--danger-light)',
+          border: '1px solid var(--danger)',
           borderRadius: '8px',
-          color: '#991b1b',
+          color: 'var(--danger)',
           fontSize: '14px'
         }}>
           {error}
@@ -295,7 +310,7 @@ export default function UserManagement() {
                 onClick={() => setShowChangeUsername(true)}
                 style={{
                   padding: '10px 16px',
-                  backgroundColor: '#2563eb',
+                  backgroundColor: 'var(--primary)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
@@ -304,8 +319,8 @@ export default function UserManagement() {
                   fontWeight: 500,
                   transition: 'background-color 0.15s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
               >
                 Change Username
               </button>
@@ -313,7 +328,7 @@ export default function UserManagement() {
                 onClick={() => setShowChangePassword(true)}
                 style={{
                   padding: '10px 16px',
-                  backgroundColor: '#2563eb',
+                  backgroundColor: 'var(--primary)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
@@ -322,8 +337,8 @@ export default function UserManagement() {
                   fontWeight: 500,
                   transition: 'background-color 0.15s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
               >
                 Change Password
               </button>
@@ -331,7 +346,7 @@ export default function UserManagement() {
                 onClick={handleDeleteAccount}
                 style={{
                   padding: '10px 16px',
-                  backgroundColor: '#ef4444',
+                  backgroundColor: 'var(--danger)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
@@ -340,8 +355,8 @@ export default function UserManagement() {
                   fontWeight: 500,
                   transition: 'background-color 0.15s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--danger-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--danger)'}
               >
                 Delete Account
               </button>
@@ -388,7 +403,7 @@ export default function UserManagement() {
                   style={{
                     flex: 1,
                     padding: '8px 16px',
-                    backgroundColor: '#10b981',
+                    backgroundColor: 'var(--success)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '6px',
@@ -397,8 +412,8 @@ export default function UserManagement() {
                     fontWeight: 500,
                     transition: 'background-color 0.15s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--success-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--success)'}
                 >
                   Save
                 </button>
@@ -411,8 +426,8 @@ export default function UserManagement() {
                   style={{
                     flex: 1,
                     padding: '8px 16px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151',
+                    backgroundColor: 'var(--bg-hover)',
+                    color: 'var(--text-main)',
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -420,8 +435,8 @@ export default function UserManagement() {
                     fontWeight: 500,
                     transition: 'background-color 0.15s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                 >
                   Cancel
                 </button>
@@ -432,9 +447,9 @@ export default function UserManagement() {
           {showChangePassword && (
             <form onSubmit={handleUpdateAccount} style={{ 
               padding: '16px',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--border-main)',
               borderRadius: '8px',
-              backgroundColor: '#ffffff'
+              backgroundColor: 'var(--bg-main)'
             }}>
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ 
@@ -442,7 +457,7 @@ export default function UserManagement() {
                   marginBottom: '6px',
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#374151'
+                  color: 'var(--text-main)'
                 }}>
                   New Password:
                 </label>
@@ -454,7 +469,7 @@ export default function UserManagement() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid var(--border-hover)',
                     borderRadius: '6px',
                     fontSize: '14px',
                     fontFamily: 'inherit'
@@ -467,7 +482,7 @@ export default function UserManagement() {
                   style={{
                     flex: 1,
                     padding: '8px 16px',
-                    backgroundColor: '#10b981',
+                    backgroundColor: 'var(--success)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '6px',
@@ -476,8 +491,8 @@ export default function UserManagement() {
                     fontWeight: 500,
                     transition: 'background-color 0.15s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--success-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--success)'}
                 >
                   Save
                 </button>
@@ -490,8 +505,8 @@ export default function UserManagement() {
                   style={{
                     flex: 1,
                     padding: '8px 16px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151',
+                    backgroundColor: 'var(--bg-hover)',
+                    color: 'var(--text-main)',
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -499,8 +514,8 @@ export default function UserManagement() {
                     fontWeight: 500,
                     transition: 'background-color 0.15s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                 >
                   Cancel
                 </button>
@@ -520,7 +535,7 @@ export default function UserManagement() {
                 width: '100%',
                 padding: '10px 16px',
                 marginBottom: '16px',
-                backgroundColor: '#10b981',
+                backgroundColor: 'var(--success)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -533,8 +548,8 @@ export default function UserManagement() {
                 gap: '8px',
                 transition: 'background-color 0.15s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--success-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--success)'}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
               Create User
@@ -554,7 +569,7 @@ export default function UserManagement() {
                 marginBottom: '16px',
                 fontSize: '16px',
                 fontWeight: 600,
-                color: '#111827'
+                color: 'var(--text-main)'
               }}>
                 Create New User
               </h3>
@@ -564,7 +579,7 @@ export default function UserManagement() {
                   marginBottom: '6px',
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#374151'
+                  color: 'var(--text-main)'
                 }}>
                   Username:
                 </label>
@@ -576,7 +591,7 @@ export default function UserManagement() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid var(--border-hover)',
                     borderRadius: '6px',
                     fontSize: '14px',
                     fontFamily: 'inherit'
@@ -589,7 +604,7 @@ export default function UserManagement() {
                   marginBottom: '6px',
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#374151'
+                  color: 'var(--text-main)'
                 }}>
                   Password:
                 </label>
@@ -601,7 +616,7 @@ export default function UserManagement() {
                   style={{
                     width: '100%',
                     padding: '8px 12px',
-                    border: '1px solid #d1d5db',
+                    border: '1px solid var(--border-hover)',
                     borderRadius: '6px',
                     fontSize: '14px',
                     fontFamily: 'inherit'
@@ -614,7 +629,7 @@ export default function UserManagement() {
                   style={{
                     flex: 1,
                     padding: '8px 16px',
-                    backgroundColor: '#10b981',
+                    backgroundColor: 'var(--success)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '6px',
@@ -623,8 +638,8 @@ export default function UserManagement() {
                     fontWeight: 500,
                     transition: 'background-color 0.15s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--success-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--success)'}
                 >
                   Create
                 </button>
@@ -638,8 +653,8 @@ export default function UserManagement() {
                   style={{
                     flex: 1,
                     padding: '8px 16px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151',
+                    backgroundColor: 'var(--bg-hover)',
+                    color: 'var(--text-main)',
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -647,8 +662,8 @@ export default function UserManagement() {
                     fontWeight: 500,
                     transition: 'background-color 0.15s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                 >
                   Cancel
                 </button>
@@ -659,7 +674,7 @@ export default function UserManagement() {
           {loading ? (
             <div style={{ 
               padding: '16px',
-              color: '#6b7280',
+              color: 'var(--text-secondary)',
               fontSize: '14px',
               textAlign: 'center'
             }}>
@@ -718,7 +733,7 @@ export default function UserManagement() {
                             }}
                             style={{
                               padding: '6px 12px',
-                              backgroundColor: '#f59e0b',
+                              backgroundColor: 'var(--warning)',
                               color: 'white',
                               border: 'none',
                               borderRadius: '6px',
@@ -727,8 +742,8 @@ export default function UserManagement() {
                               fontWeight: 500,
                               transition: 'background-color 0.15s'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--warning-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--warning)'}
                           >
                             Edit
                           </button>
@@ -737,7 +752,7 @@ export default function UserManagement() {
                               onClick={() => handleDeleteUser(u.id, isCurrentUser)}
                               style={{
                                 padding: '6px 12px',
-                                backgroundColor: '#ef4444',
+                                backgroundColor: 'var(--danger)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '6px',
@@ -746,8 +761,8 @@ export default function UserManagement() {
                                 fontWeight: 500,
                                 transition: 'background-color 0.15s'
                               }}
-                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--danger-hover)'}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--danger)'}
                             >
                               Delete
                             </button>
@@ -783,7 +798,7 @@ export default function UserManagement() {
                             style={{
                               width: '100%',
                               padding: '8px 12px',
-                              border: '1px solid #d1d5db',
+                              border: '1px solid var(--border-hover)',
                               borderRadius: '6px',
                               fontSize: '14px',
                               fontFamily: 'inherit'
@@ -796,7 +811,7 @@ export default function UserManagement() {
                             marginBottom: '6px',
                             fontSize: '13px',
                             fontWeight: 500,
-                            color: '#6b7280'
+                            color: 'var(--text-secondary)'
                           }}>
                             New Password (leave blank to keep current):
                           </label>
@@ -807,7 +822,7 @@ export default function UserManagement() {
                             style={{
                               width: '100%',
                               padding: '8px 12px',
-                              border: '1px solid #d1d5db',
+                              border: '1px solid var(--border-hover)',
                               borderRadius: '6px',
                               fontSize: '14px',
                               fontFamily: 'inherit'
@@ -820,7 +835,7 @@ export default function UserManagement() {
                             style={{
                               flex: 1,
                               padding: '8px 16px',
-                              backgroundColor: '#10b981',
+                              backgroundColor: 'var(--success)',
                               color: 'white',
                               border: 'none',
                               borderRadius: '6px',
@@ -829,8 +844,8 @@ export default function UserManagement() {
                               fontWeight: 500,
                               transition: 'background-color 0.15s'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--success-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--success)'}
                           >
                             Save
                           </button>
@@ -843,8 +858,8 @@ export default function UserManagement() {
                             style={{
                               flex: 1,
                               padding: '8px 16px',
-                              backgroundColor: '#f3f4f6',
-                              color: '#374151',
+                              backgroundColor: 'var(--bg-hover)',
+                              color: 'var(--text-main)',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
@@ -852,8 +867,8 @@ export default function UserManagement() {
                               fontWeight: 500,
                               transition: 'background-color 0.15s'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                           >
                             Cancel
                           </button>

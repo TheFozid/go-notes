@@ -14,6 +14,7 @@ import {
   type Workspace,
 } from '../api/workspaces';
 import ContextMenu, { type ContextMenuItem } from './ContextMenu';
+import { notifyError } from '../store/dialogStore';
 import ManageAccessModal from './ManageAccessModal';
 import FolderNode from './FolderNode';
 import NoteNode from './NoteNode';
@@ -74,7 +75,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       updateWorkspaceInStore(workspace.id, { name: newName });
       setRenaming(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to rename workspace');
+      notifyError(err.response?.data?.error || 'Failed to rename workspace');
       setNewName(workspace.name);
       setRenaming(false);
     }
@@ -86,7 +87,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       removeWorkspaceFromStore(workspace.id);
       setShowDeleteModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to delete workspace');
+      notifyError(err.response?.data?.error || 'Failed to delete workspace');
     }
   }
 
@@ -96,7 +97,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       removeWorkspaceFromStore(workspace.id);
       setShowLeaveModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to leave workspace');
+      notifyError(err.response?.data?.error || 'Failed to leave workspace');
     }
   }
 
@@ -106,7 +107,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       addFolder(folder);
       setShowAddFolderModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to create folder');
+      notifyError(err.response?.data?.error || 'Failed to create folder');
     }
   }
 
@@ -116,14 +117,14 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       addNote(note);
       setShowAddNoteModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to create note');
+      notifyError(err.response?.data?.error || 'Failed to create note');
     }
   }
   
   async function handleMoveToRoot() {
     if (!moveMode.active || moveMode.sourceWorkspaceId !== workspace.id) return;
     if (!canMoveTo(null)) {
-      alert('Cannot move here (same location)');
+      notifyError('Cannot move here (same location)');
       return;
     }
     
@@ -131,7 +132,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       if (moveMode.itemType === 'folder') {
         const folderToMove = useWorkspaceStore.getState().getFolderById(moveMode.itemId!);
         if (!folderToMove) {
-          alert('Folder not found');
+          notifyError('Folder not found');
           return;
         }
         await updateFolder(workspace.id, moveMode.itemId!, folderToMove.name, null);
@@ -144,7 +145,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       exitMoveMode();
       onUpdate();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to move item');
+      notifyError(err.response?.data?.error || 'Failed to move item');
     }
   }
 
@@ -169,6 +170,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
       {/* Workspace Header */}
       <div
         onContextMenu={handleContextMenu}
+        className="tree-row"
         onClick={() => {
           if (moveMode.active && moveMode.sourceWorkspaceId === workspace.id) {
             handleMoveToRoot();
@@ -267,7 +269,7 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
             style={{
               flex: 1,
               padding: '4px 8px',
-              border: '2px solid #2563eb',
+              border: '2px solid var(--primary)',
               borderRadius: '4px',
               fontSize: '14px',
               fontFamily: 'inherit',
@@ -275,6 +277,21 @@ export default function WorkspaceNode({ workspace, onUpdate }: WorkspaceNodeProp
             }}
             onClick={(e) => e.stopPropagation()}
           />
+        )}
+
+        {!renaming && !moveMode.active && (
+          <button
+            className="tree-row-action"
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setContextMenu({ x: rect.left, y: rect.bottom + 4 });
+            }}
+            title="Workspace actions"
+            aria-label={`Actions for ${workspace.name}`}
+          >
+            <span className="material-symbols-outlined">more_horiz</span>
+          </button>
         )}
       </div>
 

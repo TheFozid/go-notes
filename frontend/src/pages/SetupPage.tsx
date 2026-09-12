@@ -30,10 +30,10 @@ function SetupPage() {
       alignItems: 'center', 
       justifyContent: 'center', 
       height: '100vh',
-      backgroundColor: '#f9fafb'
+      backgroundColor: 'var(--bg-panel)'
     }}>
       <div style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--bg-main)',
         padding: '32px',
         borderRadius: '12px',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -48,7 +48,7 @@ function SetupPage() {
             margin: 0,
             fontSize: '24px',
             fontWeight: 700,
-            color: '#111827',
+            color: 'var(--text-main)',
             marginBottom: '8px'
           }}>
             Welcome to go-notes
@@ -56,7 +56,7 @@ function SetupPage() {
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: '#6b7280'
+            color: 'var(--text-secondary)'
           }}>
             Create your admin account to get started
           </p>
@@ -69,7 +69,7 @@ function SetupPage() {
               marginBottom: '6px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#374151'
+              color: 'var(--text-main)'
             }}>
               Username
             </label>
@@ -82,7 +82,7 @@ function SetupPage() {
               style={{
                 width: '100%',
                 padding: '10px 12px',
-                border: '1px solid #d1d5db',
+                border: '1px solid var(--border-hover)',
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontFamily: 'inherit',
@@ -90,11 +90,11 @@ function SetupPage() {
                 outline: 'none'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#2563eb';
+                e.currentTarget.style.borderColor = 'var(--primary)';
                 e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#d1d5db';
+                e.currentTarget.style.borderColor = 'var(--border-hover)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
             />
@@ -106,7 +106,7 @@ function SetupPage() {
               marginBottom: '6px',
               fontSize: '14px',
               fontWeight: 500,
-              color: '#374151'
+              color: 'var(--text-main)'
             }}>
               Password
             </label>
@@ -118,7 +118,7 @@ function SetupPage() {
               style={{
                 width: '100%',
                 padding: '10px 12px',
-                border: '1px solid #d1d5db',
+                border: '1px solid var(--border-hover)',
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontFamily: 'inherit',
@@ -126,11 +126,11 @@ function SetupPage() {
                 outline: 'none'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#2563eb';
+                e.currentTarget.style.borderColor = 'var(--primary)';
                 e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#d1d5db';
+                e.currentTarget.style.borderColor = 'var(--border-hover)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
             />
@@ -140,10 +140,10 @@ function SetupPage() {
             <div style={{
               padding: '12px',
               marginBottom: '16px',
-              backgroundColor: '#fee2e2',
-              border: '1px solid #fecaca',
+              backgroundColor: 'var(--danger-light)',
+              border: '1px solid var(--danger)',
               borderRadius: '8px',
-              color: '#991b1b',
+              color: 'var(--danger)',
               fontSize: '14px'
             }}>
               {error}
@@ -156,7 +156,7 @@ function SetupPage() {
             style={{
               width: '100%',
               padding: '12px 16px',
-              backgroundColor: loading ? '#9ca3af' : '#2563eb',
+              backgroundColor: loading ? 'var(--text-tertiary)' : 'var(--primary)',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -166,10 +166,10 @@ function SetupPage() {
               transition: 'background-color 0.15s'
             }}
             onMouseEnter={(e) => {
-              if (!loading) e.currentTarget.style.backgroundColor = '#1d4ed8';
+              if (!loading) e.currentTarget.style.backgroundColor = 'var(--primary-hover)';
             }}
             onMouseLeave={(e) => {
-              if (!loading) e.currentTarget.style.backgroundColor = '#2563eb';
+              if (!loading) e.currentTarget.style.backgroundColor = 'var(--primary)';
             }}
           >
             {loading ? 'Creating Account...' : 'Create Admin Account'}

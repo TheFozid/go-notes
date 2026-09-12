@@ -7,6 +7,7 @@ import {
   transferOwnership,
   type WorkspaceMember,
 } from '../api/workspaces';
+import { confirmDialog } from '../store/dialogStore';
 
 interface ManageAccessModalProps {
   workspaceId: number;
@@ -62,9 +63,16 @@ export default function ManageAccessModal({
   }
 
   async function handleTransferOwnership(newOwnerId: number) {
-    if (!confirm('Are you sure you want to transfer ownership? You will become a member.')) {
-      return;
-    }
+    const newOwner = users.find((u) => u.id === newOwnerId);
+    const confirmed = await confirmDialog({
+      title: 'Transfer ownership',
+      message: newOwner
+        ? `Make ${newOwner.username} the owner of "${workspaceName}"? You will become a member and lose owner permissions.`
+        : 'Transfer ownership? You will become a member and lose owner permissions.',
+      confirmText: 'Transfer',
+      isDangerous: true,
+    });
+    if (!confirmed) return;
 
     setError(null);
     try {
@@ -90,16 +98,17 @@ export default function ManageAccessModal({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        backdropFilter: 'blur(4px)'
+        backdropFilter: 'blur(4px)',
+        padding: '16px'
       }}
       onClick={onClose}
     >
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-main)',
           padding: '24px',
           borderRadius: '12px',
-          minWidth: '480px',
+          width: '100%',
           maxWidth: '600px',
           maxHeight: '80vh',
           overflow: 'auto',
@@ -112,7 +121,7 @@ export default function ManageAccessModal({
           marginBottom: '8px',
           fontSize: '20px',
           fontWeight: 700,
-          color: '#111827'
+          color: 'var(--text-main)'
         }}>
           Manage Access
         </h2>
@@ -120,7 +129,7 @@ export default function ManageAccessModal({
           marginTop: 0,
           marginBottom: '20px',
           fontSize: '14px',
-          color: '#6b7280'
+          color: 'var(--text-secondary)'
         }}>
           {workspaceName}
         </p>
@@ -129,10 +138,10 @@ export default function ManageAccessModal({
           <div style={{
             padding: '12px',
             marginBottom: '16px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
+            backgroundColor: 'var(--danger-light)',
+            border: '1px solid var(--danger)',
             borderRadius: '8px',
-            color: '#991b1b',
+            color: 'var(--danger)',
             fontSize: '14px'
           }}>
             {error}
@@ -143,7 +152,7 @@ export default function ManageAccessModal({
           <div style={{ 
             padding: '32px',
             textAlign: 'center',
-            color: '#6b7280',
+            color: 'var(--text-secondary)',
             fontSize: '14px'
           }}>
             Loading...
@@ -164,9 +173,9 @@ export default function ManageAccessModal({
                     alignItems: 'center',
                     padding: '12px',
                     marginBottom: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid var(--border-main)',
                     borderRadius: '8px',
-                    backgroundColor: isMember ? '#f9fafb' : '#ffffff',
+                    backgroundColor: isMember ? 'var(--bg-panel)' : 'var(--bg-main)',
                     transition: 'all 0.15s'
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -201,15 +210,15 @@ export default function ManageAccessModal({
                     <span style={{
                       fontSize: '14px',
                       fontWeight: 500,
-                      color: '#111827'
+                      color: 'var(--text-main)'
                     }}>
                       {user.username}
                       {user.is_admin && (
                         <span style={{ 
                           marginLeft: '8px',
                           fontSize: '12px',
-                          color: '#6b7280',
-                          backgroundColor: '#f3f4f6',
+                          color: 'var(--text-secondary)',
+                          backgroundColor: 'var(--bg-hover)',
                           padding: '2px 8px',
                           borderRadius: '12px',
                           fontWeight: 500
@@ -221,8 +230,8 @@ export default function ManageAccessModal({
                         <span style={{ 
                           marginLeft: '8px',
                           fontSize: '12px',
-                          color: '#2563eb',
-                          backgroundColor: '#dbeafe',
+                          color: 'var(--primary)',
+                          backgroundColor: 'var(--primary-light)',
                           padding: '2px 8px',
                           borderRadius: '12px',
                           fontWeight: 500
@@ -241,7 +250,7 @@ export default function ManageAccessModal({
                       }}
                       style={{
                         padding: '6px 12px',
-                        backgroundColor: '#f59e0b',
+                        backgroundColor: 'var(--warning)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '6px',
@@ -250,8 +259,8 @@ export default function ManageAccessModal({
                         fontWeight: 500,
                         transition: 'background-color 0.15s'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--warning-hover)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--warning)'}
                     >
                       Transfer Ownership
                     </button>
@@ -267,8 +276,8 @@ export default function ManageAccessModal({
           style={{
             width: '100%',
             padding: '10px 16px',
-            backgroundColor: '#f3f4f6',
-            color: '#374151',
+            backgroundColor: 'var(--bg-hover)',
+            color: 'var(--text-main)',
             border: 'none',
             borderRadius: '8px',
             cursor: 'pointer',
@@ -276,8 +285,8 @@ export default function ManageAccessModal({
             fontWeight: 500,
             transition: 'background-color 0.15s'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
         >
           Close
         </button>

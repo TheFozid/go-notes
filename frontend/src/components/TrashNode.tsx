@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ContextMenu from './ContextMenu';
 import useWorkspaceStore from '../store/workspaceStore';
+import { confirmDialog, notifyError } from '../store/dialogStore';
 import {
   getTrashedNotes,
   restoreNote,
@@ -21,9 +22,19 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
 
   const { updateNote: updateNoteInStore, removeNote: removeNoteFromStore } = useWorkspaceStore();
 
+  /*
+   * Trashed notes are fetched rather than read from the store, because the
+   * initial load only pulls untrashed ones. Re-fetch whenever the number of
+   * trashed notes for this workspace changes, so trashing a note or deleting a
+   * folder updates the count without a reload.
+   */
+  const trashedCount = useWorkspaceStore(
+    (state) => state.notes.filter((n) => n.workspace_id === workspaceId && n.is_trashed).length
+  );
+
   useEffect(() => {
     loadTrashedNotes();
-  }, [workspaceId]);
+  }, [workspaceId, trashedCount]);
 
   async function loadTrashedNotes() {
     try {
@@ -42,14 +53,21 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
       loadTrashedNotes();
       onUpdate();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to restore note');
+      notifyError(err.response?.data?.error || 'Failed to restore note');
     }
   }
 
   async function handleDeletePermanently(noteId: number) {
-    if (!confirm('Are you sure you want to permanently delete this note? This cannot be undone.')) {
-      return;
-    }
+    const note = trashedNotes.find((n) => n.id === noteId);
+    const confirmed = await confirmDialog({
+      title: 'Delete note permanently',
+      message: note
+        ? `Permanently delete "${note.title}"? This cannot be undone.`
+        : 'Permanently delete this note? This cannot be undone.',
+      confirmText: 'Delete permanently',
+      isDangerous: true,
+    });
+    if (!confirmed) return;
 
     try {
       await deleteNote(workspaceId, noteId);
@@ -57,14 +75,18 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
       loadTrashedNotes();
       onUpdate();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to delete note');
+      notifyError(err.response?.data?.error || 'Failed to delete note');
     }
   }
 
   async function handleEmptyTrash() {
-    if (!confirm('Are you sure you want to empty the trash? All notes will be permanently deleted. This cannot be undone.')) {
-      return;
-    }
+    const confirmed = await confirmDialog({
+      title: 'Empty trash',
+      message: `Permanently delete ${trashedNotes.length} note${trashedNotes.length === 1 ? '' : 's'} in the trash? This cannot be undone.`,
+      confirmText: 'Empty trash',
+      isDangerous: true,
+    });
+    if (!confirmed) return;
 
     try {
       await emptyTrash(workspaceId);
@@ -72,7 +94,7 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
       loadTrashedNotes();
       onUpdate();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to empty trash');
+      notifyError(err.response?.data?.error || 'Failed to empty trash');
     }
   }
 
@@ -109,7 +131,7 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
         }}
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f3f4f6';
+          e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = 'transparent';
@@ -118,7 +140,7 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
         <span style={{ 
           marginRight: '8px',
           userSelect: 'none',
-          color: '#6b7280',
+          color: 'var(--text-secondary)',
           fontSize: '12px',
           width: '16px',
           display: 'flex',
@@ -130,22 +152,22 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
           </span>
         </span>
         <span style={{ marginRight: '8px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#9ca3af' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--text-tertiary)' }}>
             delete
           </span>
         </span>
         <span style={{ 
           flex: 1,
           fontSize: '14px',
-          color: '#6b7280',
+          color: 'var(--text-secondary)',
           fontWeight: 500
         }}>
           Trash
         </span>
         <span style={{ 
           fontSize: '12px',
-          color: '#9ca3af',
-          backgroundColor: '#f3f4f6',
+          color: 'var(--text-tertiary)',
+          backgroundColor: 'var(--bg-hover)',
           padding: '2px 8px',
           borderRadius: '12px',
           fontWeight: 500
@@ -160,7 +182,7 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
           {count === 0 ? (
             <div style={{ 
               padding: '12px',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               fontSize: '13px',
               textAlign: 'center'
             }}>
@@ -184,7 +206,7 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
                   transition: 'all 0.15s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f9fafb';
+                  e.currentTarget.style.backgroundColor = 'var(--bg-panel)';
                   e.currentTarget.style.opacity = '0.8';
                 }}
                 onMouseLeave={(e) => {
@@ -193,14 +215,14 @@ export default function TrashNode({ workspaceId, onUpdate }: TrashNodeProps) {
                 }}
               >
                 <span style={{ marginRight: '8px' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#9ca3af' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--text-tertiary)' }}>
                     description
                   </span>
                 </span>
                 <span style={{ 
                   flex: 1,
                   fontSize: '14px',
-                  color: '#6b7280'
+                  color: 'var(--text-secondary)'
                 }}>
                   {note.title}
                 </span>

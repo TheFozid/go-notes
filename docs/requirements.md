@@ -1,6 +1,6 @@
 # go-notes Requirements
 
-**Last Updated:** 2025-11-24
+**Last Updated:** 2026-09-12
 **Purpose:** Define what the system must do (stable reference document)
 
 ---
@@ -45,7 +45,7 @@
 - Customizable background color (9 options)
 - Soft-delete (trash system)
 - Metadata stored in PostgreSQL: title, color, workspace, folder, yjs_room_id, tags
-- Content stored in PostgreSQL via Hocuspocus (binary Yjs documents)
+- Content stored in PostgreSQL via Hocuspocus (binary Yjs document in `notes.content`)
 
 ### Tags
 
@@ -230,10 +230,10 @@
 - Trashed notes moved to parent folder (or workspace root if no parent)
 
 ### Content Storage
-- Hocuspocus documents in PostgreSQL `yjs_documents` table
+- Hocuspocus documents in the `notes.content` column
 - PostgreSQL stores metadata separately in `notes` table
 - Title stored for search/display (updated manually for now)
-- No content_text column (content is binary Yjs data)
+- `notes.content_text` holds plain text extracted by the client, for search
 
 ### Authentication Flow
 1. User authenticates with backend (receives JWT)
@@ -269,7 +269,7 @@
 - **Authentication:** JWT validation via Go backend
 
 ### Frontend
-- **Framework:** React 18
+- **Framework:** React 19
 - **Language:** TypeScript
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
@@ -326,12 +326,14 @@
 ## UI/UX Requirements
 
 ### Layout
-- CSS Grid (3 columns × 2 rows)
-- Top bar (60px) with Material Symbols icons and dynamic note path
-- Left panel (250px, collapsible, hidden by default) for workspace tree, tags, search
-- Right panel (250px, collapsible, hidden by default) for user management
-- Main content area for note editor
-- Inline toolbar with horizontal scroll (toolbar + tags + color picker)
+- Flexbox, with a responsive breakpoint at 768px
+- Top bar (56px) with breadcrumb, sync status and account menu
+- Sidebar (resizable; width and open state remembered) for search, notes, tags
+- On mobile the sidebar is a slide-over drawer that closes on selection
+- Note header with title, tags and colour, above the formatting toolbar
+- Overflow formatting controls behind a "More" button
+- Editor text capped to a readable column width
+- Account settings in a dialog, not a docked panel
 
 ### Workspace Tree
 - Hierarchical display (workspaces → folders → notes)
@@ -401,16 +403,18 @@
 ## Known Limitations
 
 ### Current
-- Search only covers title and tags (not full content text)
-- No content search (Yjs documents are binary, not searchable)
+- Content search relies on the client having synced `content_text`, so a note
+  not opened since that feature landed will not match on its content until it
+  is opened and edited again
 - No automated tests (manual testing only)
 - Authentication warning in console (cosmetic)
 
 ### Design Decisions
-- Content stored as binary Yjs documents (enables collaboration but limits searchability)
+- Content stored as binary Yjs documents, with plain text mirrored to
+  `content_text` so it stays searchable
 - No content_text column (would require sync mechanism, adds complexity)
 - Title stored separately for search/display (acceptable tradeoff)
-- Tags provide additional searchability (compensates for no content search)
+- Tags provide additional searchability alongside title and content search
 
 ---
 

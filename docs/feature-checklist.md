@@ -1,6 +1,6 @@
 # go-notes Feature Checklist
 
-**Last Updated:** 2025-11-24  
+**Last Updated:** 2026-09-12
 **Purpose:** Track completion status of all features
 
 ---
@@ -65,7 +65,7 @@
 ## Frontend
 
 ### Project Setup
-- [x] ✅ React 18 + TypeScript
+- [x] ✅ React 19 + TypeScript
 - [x] ✅ Vite build system
 - [x] ✅ Tailwind CSS
 - [x] ✅ Zustand state management
@@ -82,13 +82,14 @@
 - [x] ✅ Auto-redirect on auth failure
 
 ### Layout & UI
-- [x] ✅ CSS Grid layout (3×2)
-- [x] ✅ Top bar with user menu
-- [x] ✅ Collapsible left panel (250px)
-- [x] ✅ Collapsible right panel (250px)
-- [x] ✅ Main content area
-- [x] ✅ Bottom toolbar (always visible)
-- [x] ✅ Responsive panel toggles
+- [x] ✅ Flexbox layout, responsive at 768px
+- [x] ✅ Top bar with breadcrumb, sync status, account menu
+- [x] ✅ Resizable sidebar (width and open state remembered)
+- [x] ✅ Slide-over sidebar drawer on mobile
+- [x] ✅ Note header: title, tags, colour, undo/redo
+- [x] ✅ Formatting toolbar with overflow "More" panel
+- [x] ✅ Editor text capped to a readable column width
+- [x] ✅ Settings in a dialog (right panel removed)
 
 ### Workspace Management
 - [x] ✅ Workspace tree display
@@ -194,7 +195,7 @@
 ### UI/UX Features
 - [x] ✅ Material Symbols icons throughout
 - [x] ✅ Left panel toggle icon (left_panel_open/close)
-- [x] ✅ Right panel toggle icon (settings)
+- [x] ✅ Account menu (settings, theme, log out)
 - [x] ✅ Logout icon
 - [x] ✅ Panels hidden by default
 - [x] ✅ Dynamic note path in title bar
@@ -206,11 +207,13 @@
 
 ### Known Issues
 - [ ] ⚠️ Authentication warning in console (cosmetic only)
-- [ ] ⚠️ No loading states for async operations
-- [ ] ⚠️ No error toasts/notifications
-- [ ] ⚠️ Quill dropdown sizing could be refined further
+- [x] ✅ Loading state while a note opens
+- [x] ✅ Error toasts (replaced `alert()`, which never showed on Android)
+- [x] ✅ Quill dropdowns clamped to the viewport
+- [ ] ⚠️ Titles are metadata, so concurrent renames are last-write-wins
+- [ ] ⚠️ None of the recent UI work has been verified in a real browser
 
-**Frontend Status:** ✅ **Complete and Polished**
+**Frontend Status:** 🔄 **Reworked, awaiting testing on a real deployment**
 
 ---
 
@@ -320,7 +323,7 @@
 - ✅ Perfect toolbar scrolling and dropdown behavior
 
 ### Ready for Phase 6
-- 🔄 Mobile responsive design
+- [x] ✅ Mobile responsive design
 - 🔄 Offline editing verification
 
 ### Technical Debt

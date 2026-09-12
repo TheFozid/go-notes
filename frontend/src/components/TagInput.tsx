@@ -179,14 +179,14 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
             style={{
               maxHeight: '240px',
               overflowY: 'auto',
-              borderTop: currentTags.length > 0 ? '1px solid #e5e7eb' : 'none',
+              borderTop: currentTags.length > 0 ? '1px solid var(--border-main)' : 'none',
               paddingTop: currentTags.length > 0 ? '12px' : '0',
             }}
           >
             {currentTags.length === 0 ? (
               <div style={{ 
                 padding: '16px',
-                color: '#9ca3af',
+                color: 'var(--text-tertiary)',
                 fontSize: '14px',
                 textAlign: 'center'
               }}>
@@ -232,7 +232,7 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
                     style={{
                       border: 'none',
                       backgroundColor: 'transparent',
-                      color: '#ef4444',
+                      color: 'var(--danger)',
                       cursor: 'pointer',
                       padding: '4px',
                       borderRadius: '6px',
@@ -241,7 +241,7 @@ export default function TagInput({ currentTags, onTagsChange }: TagInputProps) {
                       transition: 'background-color 0.15s'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#fee2e2';
+                      e.currentTarget.style.backgroundColor = 'var(--danger-light)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'transparent';

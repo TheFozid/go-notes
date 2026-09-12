@@ -48,7 +48,7 @@ export default function ConfirmModal({
     >
       <div
         style={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-main)',
           borderRadius: '12px',
           padding: '24px',
           width: '100%',
@@ -68,7 +68,7 @@ export default function ConfirmModal({
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            backgroundColor: isDangerous ? '#fee2e2' : '#dbeafe',
+            backgroundColor: isDangerous ? 'var(--danger-light)' : 'var(--primary-light)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -78,7 +78,7 @@ export default function ConfirmModal({
               className="material-symbols-outlined" 
               style={{ 
                 fontSize: '24px',
-                color: isDangerous ? '#dc2626' : '#2563eb'
+                color: isDangerous ? 'var(--danger-hover)' : 'var(--primary)'
               }}
             >
               {isDangerous ? 'warning' : 'help'}
@@ -90,14 +90,14 @@ export default function ConfirmModal({
               margin: '0 0 8px 0',
               fontSize: '18px',
               fontWeight: 600,
-              color: '#111827'
+              color: 'var(--text-main)'
             }}>
               {title}
             </h3>
             <p style={{
               margin: 0,
               fontSize: '14px',
-              color: '#6b7280',
+              color: 'var(--text-secondary)',
               lineHeight: '1.5'
             }}>
               {message}
@@ -116,8 +116,8 @@ export default function ConfirmModal({
             onClick={onCancel}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
+              backgroundColor: 'var(--bg-hover)',
+              color: 'var(--text-main)',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
@@ -125,8 +125,8 @@ export default function ConfirmModal({
               fontWeight: 500,
               transition: 'background-color 0.15s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--border-main)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
           >
             {cancelText}
           </button>
@@ -138,7 +138,7 @@ export default function ConfirmModal({
             }}
             style={{
               padding: '10px 20px',
-              backgroundColor: isDangerous ? '#ef4444' : '#2563eb',
+              backgroundColor: isDangerous ? 'var(--danger)' : 'var(--primary)',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -148,10 +148,10 @@ export default function ConfirmModal({
               transition: 'background-color 0.15s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = isDangerous ? '#dc2626' : '#1d4ed8';
+              e.currentTarget.style.backgroundColor = isDangerous ? 'var(--danger-hover)' : 'var(--primary-hover)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = isDangerous ? '#ef4444' : '#2563eb';
+              e.currentTarget.style.backgroundColor = isDangerous ? 'var(--danger)' : 'var(--primary)';
             }}
             autoFocus
           >

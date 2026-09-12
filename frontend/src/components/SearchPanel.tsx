@@ -58,7 +58,7 @@ export default function SearchPanel() {
     <div style={{ 
       marginTop: '16px',
       paddingTop: '16px',
-      borderTop: '1px solid #e5e7eb'
+      borderTop: '1px solid var(--border-main)'
     }}>
       {/* Search Header */}
       <div style={{ 
@@ -68,7 +68,7 @@ export default function SearchPanel() {
       }}>
         <span className="material-symbols-outlined" style={{ 
           fontSize: '20px',
-          color: '#6b7280',
+          color: 'var(--text-secondary)',
           marginRight: '8px'
         }}>
           search
@@ -76,7 +76,7 @@ export default function SearchPanel() {
         <span style={{ 
           fontWeight: 600,
           fontSize: '14px',
-          color: '#111827'
+          color: 'var(--text-main)'
         }}>
           Search
         </span>
@@ -93,20 +93,20 @@ export default function SearchPanel() {
             style={{
               width: '100%',
               padding: '8px 12px 8px 36px',
-              border: '1px solid #d1d5db',
+              border: '1px solid var(--border-hover)',
               borderRadius: '8px',
               fontSize: '14px',
               fontFamily: 'inherit',
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--bg-main)',
               transition: 'all 0.15s',
               outline: 'none'
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#2563eb';
+              e.currentTarget.style.borderColor = 'var(--primary)';
               e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.borderColor = 'var(--border-hover)';
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
@@ -116,7 +116,7 @@ export default function SearchPanel() {
             top: '50%',
             transform: 'translateY(-50%)',
             fontSize: '18px',
-            color: '#9ca3af',
+            color: 'var(--text-tertiary)',
             pointerEvents: 'none'
           }}>
             search
@@ -138,22 +138,22 @@ export default function SearchPanel() {
             fontSize: '13px',
             fontWeight: 500,
             border: '1px solid',
-            borderColor: searchMode === 'metadata' ? '#2563eb' : '#d1d5db',
+            borderColor: searchMode === 'metadata' ? 'var(--primary)' : 'var(--border-hover)',
             borderRadius: '6px',
-            backgroundColor: searchMode === 'metadata' ? '#eff6ff' : '#ffffff',
-            color: searchMode === 'metadata' ? '#2563eb' : '#6b7280',
+            backgroundColor: searchMode === 'metadata' ? 'var(--bg-selected)' : 'var(--bg-main)',
+            color: searchMode === 'metadata' ? 'var(--primary)' : 'var(--text-secondary)',
             cursor: 'pointer',
             transition: 'all 0.15s',
             fontFamily: 'inherit'
           }}
           onMouseEnter={(e) => {
             if (searchMode !== 'metadata') {
-              e.currentTarget.style.borderColor = '#9ca3af';
+              e.currentTarget.style.borderColor = 'var(--text-tertiary)';
             }
           }}
           onMouseLeave={(e) => {
             if (searchMode !== 'metadata') {
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.borderColor = 'var(--border-hover)';
             }
           }}
         >
@@ -167,22 +167,22 @@ export default function SearchPanel() {
             fontSize: '13px',
             fontWeight: 500,
             border: '1px solid',
-            borderColor: searchMode === 'full' ? '#2563eb' : '#d1d5db',
+            borderColor: searchMode === 'full' ? 'var(--primary)' : 'var(--border-hover)',
             borderRadius: '6px',
-            backgroundColor: searchMode === 'full' ? '#eff6ff' : '#ffffff',
-            color: searchMode === 'full' ? '#2563eb' : '#6b7280',
+            backgroundColor: searchMode === 'full' ? 'var(--bg-selected)' : 'var(--bg-main)',
+            color: searchMode === 'full' ? 'var(--primary)' : 'var(--text-secondary)',
             cursor: 'pointer',
             transition: 'all 0.15s',
             fontFamily: 'inherit'
           }}
           onMouseEnter={(e) => {
             if (searchMode !== 'full') {
-              e.currentTarget.style.borderColor = '#9ca3af';
+              e.currentTarget.style.borderColor = 'var(--text-tertiary)';
             }
           }}
           onMouseLeave={(e) => {
             if (searchMode !== 'full') {
-              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.borderColor = 'var(--border-hover)';
             }
           }}
         >
@@ -201,7 +201,7 @@ export default function SearchPanel() {
           {isSearching ? (
             <div style={{ 
               padding: '16px',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               fontSize: '13px',
               textAlign: 'center'
             }}>
@@ -210,7 +210,7 @@ export default function SearchPanel() {
           ) : searchResults.length === 0 ? (
             <div style={{ 
               padding: '16px',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               fontSize: '13px',
               textAlign: 'center'
             }}>
@@ -221,7 +221,7 @@ export default function SearchPanel() {
               <div style={{ 
                 padding: '8px 12px 4px 12px',
                 fontSize: '12px',
-                color: '#6b7280',
+                color: 'var(--text-secondary)',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em'

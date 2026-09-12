@@ -8,6 +8,8 @@ import {
   type Note,
 } from '../api/workspaces';
 import ContextMenu, { type ContextMenuItem } from './ContextMenu';
+import { notifyError } from '../store/dialogStore';
+import { useUIStore } from '../store/uiStore';
 
 interface NoteNodeProps {
   note: Note;
@@ -38,6 +40,9 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
   function handleClick() {
     if (moveMode.active) return; // Don't select note in move mode
     setSelectedNote(note.id);
+    // Selecting a different note closes the drawer via App's effect, but tapping
+    // the note that is already open changes nothing, so close it here too
+    useUIStore.getState().closeMobileSidebar();
   }
 
   function handleContextMenu(e: React.MouseEvent) {
@@ -58,7 +63,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
       updateNoteInStore(note.id, { title: newTitle });
       setShowRenameModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to rename note');
+      notifyError(err.response?.data?.error || 'Failed to rename note');
     }
   }
 
@@ -69,7 +74,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
       onUpdate();
       setShowTrashModal(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to trash note');
+      notifyError(err.response?.data?.error || 'Failed to trash note');
     }
   }
 
@@ -87,6 +92,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
       <div
         onContextMenu={handleContextMenu}
         onClick={handleClick}
+        className="tree-row"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -95,6 +101,7 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
           borderRadius: '6px',
           backgroundColor: isSelected ? 'var(--bg-selected)' : 'transparent',
           borderLeft: `3px solid ${noteColor}`,
+          gap: '4px',
           transition: 'background-color 0.15s',
           opacity: moveMode.active && moveMode.itemType === 'note' && moveMode.itemId === note.id
             ? 0.5
@@ -134,15 +141,30 @@ export default function NoteNode({ note, workspaceId, onUpdate }: NoteNodeProps)
           </span>
           {hasCustomColor && (
             <span style={{
-              width: '16px',
-              height: '16px',
+              width: '14px',
+              height: '14px',
               borderRadius: '4px',
               backgroundColor: noteColor,
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--border-main)',
               flexShrink: 0
             }} title={`Note color: ${noteColor}`} />
           )}
         </span>
+
+        {!moveMode.active && (
+          <button
+            className="tree-row-action"
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setContextMenu({ x: rect.left, y: rect.bottom + 4 });
+            }}
+            title="Note actions"
+            aria-label={`Actions for ${note.title}`}
+          >
+            <span className="material-symbols-outlined">more_horiz</span>
+          </button>
+        )}
       </div>
 
       {contextMenu && (

@@ -9,6 +9,8 @@ import ImageResize from 'quill-image-resize';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
+import { useConnectionStore } from '../store/connectionStore';
+import { notifyError } from '../store/dialogStore';
 import { getNote, updateNoteSearchText } from '../api/workspaces';
 import { getNoteColor } from '../utils/noteColors';
 import 'quill/dist/quill.snow.css';
@@ -25,11 +27,28 @@ Quill.register({
 }, true);
 Quill.register('modules/imageResize', ImageResize);
 
+const CURSOR_COLORS = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+  '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
+];
+
+/*
+ * Same user always gets the same cursor colour. Previously this was random per
+ * connection, so a person's colour changed every time they switched notes or
+ * reconnected, which makes collaborators hard to follow.
+ */
+function getCursorColor(userId: number): string {
+  return CURSOR_COLORS[Math.abs(userId) % CURSOR_COLORS.length];
+}
+
 function QuillEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const providerRef = useRef<HocuspocusProvider | null>(null);
   const bindingRef = useRef<QuillBinding | null>(null);
+  const morePanelRef = useRef<HTMLDivElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const titleSaveRef = useRef<number | undefined>(undefined);
   
   const selectedNoteId = useWorkspaceStore((state) => state.selectedNoteId);
   const selectedWorkspaceId = useWorkspaceStore((state) => state.selectedWorkspaceId);
@@ -38,6 +57,11 @@ function QuillEditor() {
   const { isDark } = useThemeStore();
   const [currentNoteColor, setCurrentNoteColor] = useState<string>('#FFFFFF');
   const [currentNoteTags, setCurrentNoteTags] = useState<string[]>([]);
+  const setConnectionStatus = useConnectionStore((state) => state.setStatus);
+  const connectionStatus = useConnectionStore((state) => state.status);
+  const isLoadingNote = connectionStatus === 'loading';
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [title, setTitle] = useState('');
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -47,13 +71,34 @@ function QuillEditor() {
     const toolbarElement = document.querySelector('#toolbar-container');
     if (toolbarElement) {
       toolbarElement.innerHTML = `
-        <span class="ql-formats">
+        <span class="ql-formats" data-group="primary">
           <select class="ql-header">
             <option value="1"></option>
             <option value="2"></option>
             <option value="3"></option>
             <option selected></option>
           </select>
+        </span>
+        <span class="ql-formats" data-group="primary">
+          <button class="ql-bold"></button>
+          <button class="ql-italic"></button>
+          <button class="ql-underline"></button>
+          <button class="ql-strike"></button>
+        </span>
+        <span class="ql-formats" data-group="primary">
+          <button class="ql-list" value="ordered"></button>
+          <button class="ql-list" value="bullet"></button>
+          <button class="ql-list" value="check"></button>
+        </span>
+        <span class="ql-formats" data-group="primary">
+          <button class="ql-blockquote"></button>
+          <button class="ql-code-block"></button>
+        </span>
+        <span class="ql-formats" data-group="primary">
+          <button class="ql-link"></button>
+          <button class="ql-image"></button>
+        </span>
+        <span class="ql-formats" data-group="more">
           <select class="ql-font"></select>
           <select class="ql-size">
             <option value="small"></option>
@@ -62,47 +107,26 @@ function QuillEditor() {
             <option value="huge"></option>
           </select>
         </span>
-        <span class="ql-formats">
-          <button class="ql-bold"></button>
-          <button class="ql-italic"></button>
-          <button class="ql-underline"></button>
-          <button class="ql-strike"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-script" value="sub"></button>
-          <button class="ql-script" value="super"></button>
-        </span>
-        <span class="ql-formats">
+        <span class="ql-formats" data-group="more">
           <select class="ql-color"></select>
           <select class="ql-background"></select>
         </span>
-        <span class="ql-formats">
+        <span class="ql-formats" data-group="more">
+          <button class="ql-script" value="sub"></button>
+          <button class="ql-script" value="super"></button>
           <button class="ql-code"></button>
         </span>
-        <span class="ql-formats">
+        <span class="ql-formats" data-group="more">
           <select class="ql-align"></select>
-        </span>
-        <span class="ql-formats">
           <button class="ql-indent" value="-1"></button>
           <button class="ql-indent" value="+1"></button>
         </span>
-        <span class="ql-formats">
-          <button class="ql-list" value="ordered"></button>
-          <button class="ql-list" value="bullet"></button>
-          <button class="ql-list" value="check"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-blockquote"></button>
-          <button class="ql-code-block"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-link"></button>
-          <button class="ql-image"></button>
+        <span class="ql-formats" data-group="more">
           <button class="ql-video"></button>
           <button class="ql-formula"></button>
           <button class="ql-table-better"></button>
         </span>
-        <span class="ql-formats">
+        <span class="ql-formats" data-group="more">
           <button class="ql-clean"></button>
         </span>
       `;
@@ -132,38 +156,73 @@ function QuillEditor() {
 
     console.log('[QuillEditor] Quill instance created');
 
-    const toolbarContainer = document.querySelector('#toolbar-container');
-    if (toolbarContainer) {
-      toolbarContainer.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        const picker = target.closest('.ql-picker');
-        
-        if (picker) {
-          setTimeout(() => {
-            const pickerOptions = picker.querySelector('.ql-picker-options') as HTMLElement;
-            if (pickerOptions && picker.classList.contains('ql-expanded')) {
-              const pickerLabel = picker.querySelector('.ql-picker-label') as HTMLElement;
-              if (pickerLabel) {
-                const rect = pickerLabel.getBoundingClientRect();
-                pickerOptions.style.position = 'fixed';
-                pickerOptions.style.top = `${rect.bottom}px`;
-                pickerOptions.style.left = `${rect.left}px`;
-                pickerOptions.style.right = 'auto';
-                pickerOptions.style.width = 'auto';
-                pickerOptions.style.minWidth = `${rect.width}px`;
-                pickerOptions.style.maxWidth = '300px';
-              }
-            }
-          }, 10);
-        }
-      });
+    /*
+     * Relocate the rarely used groups into the "More" panel. This has to happen
+     * after Quill's constructor, which attaches a listener to every button and
+     * turns each select into a picker. Those listeners live on the elements, so
+     * moving the elements keeps both the handlers and their active state.
+     */
+    if (morePanelRef.current) {
+      const overflow = document.querySelectorAll('#toolbar-container .ql-formats[data-group="more"]');
+      overflow.forEach((group) => morePanelRef.current!.appendChild(group));
     }
+
+    const onToolbarClick = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const picker = target.closest('.ql-picker');
+      if (!picker) return;
+      setTimeout(() => {
+        const pickerOptions = picker.querySelector('.ql-picker-options') as HTMLElement;
+        if (!pickerOptions || !picker.classList.contains('ql-expanded')) return;
+        const pickerLabel = picker.querySelector('.ql-picker-label') as HTMLElement;
+        if (!pickerLabel) return;
+        const rect = pickerLabel.getBoundingClientRect();
+        pickerOptions.style.position = 'fixed';
+        pickerOptions.style.top = `${rect.bottom}px`;
+        pickerOptions.style.right = 'auto';
+        pickerOptions.style.width = 'auto';
+        pickerOptions.style.minWidth = `${rect.width}px`;
+        pickerOptions.style.maxWidth = '300px';
+        const optionsWidth = Math.min(pickerOptions.offsetWidth || rect.width, 300);
+        const maxLeft = window.innerWidth - optionsWidth - 8;
+        pickerOptions.style.left = `${Math.max(8, Math.min(rect.left, maxLeft))}px`;
+      }, 10);
+    };
+
+    const morePanel = morePanelRef.current;
+    const toolbarContainer = document.querySelector('#toolbar-container');
+    toolbarContainer?.addEventListener('click', onToolbarClick);
+    morePanel?.addEventListener('click', onToolbarClick);
 
     return () => {
       console.log('[QuillEditor] Unmounting - destroying Quill');
+      // Previously this listener was never removed
+      toolbarContainer?.removeEventListener('click', onToolbarClick);
+      morePanel?.removeEventListener('click', onToolbarClick);
       quillRef.current = null;
     };
   }, []);
+
+  // Close the More panel on an outside click or Escape
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (morePanelRef.current?.contains(target) || moreButtonRef.current?.contains(target)) return;
+      // Pickers render their options with position: fixed outside the panel
+      if ((e.target as HTMLElement).closest?.('.ql-picker-options')) return;
+      setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [moreOpen]);
 
   useEffect(() => {
     console.log('[QuillEditor] Note change effect triggered');
@@ -183,6 +242,7 @@ function QuillEditor() {
         providerRef.current.destroy();
         providerRef.current = null;
       }
+      setConnectionStatus('idle');
       return;
     }
     
@@ -209,10 +269,32 @@ function QuillEditor() {
       providerRef.current = null;
     }
 
+    /*
+     * From here until the new binding exists there is no document behind the
+     * editor: fetching metadata and the first sync can take seconds. Keeping
+     * Quill editable meant anything typed in that window went nowhere and was
+     * wiped when the new note loaded. Lock it and clear the old note's text so
+     * it isn't mistaken for the one being opened.
+     */
+    quillRef.current.enable(false);
+    quillRef.current.setText('');
+    setConnectionStatus('loading');
+
     const noteId = selectedNoteId;
     const workspaceId = selectedWorkspaceId;
     
     let cancelled = false;
+
+    function onProviderStatus({ status }: { status: string }) {
+      if (cancelled) return;
+      if (status === 'connected') setConnectionStatus('connected');
+      else if (status === 'connecting') setConnectionStatus('connecting');
+      else setConnectionStatus('offline');
+    }
+
+    function onProviderDisconnect() {
+      if (!cancelled) setConnectionStatus('offline');
+    }
 
     async function connectToNote() {
       try {
@@ -224,6 +306,7 @@ function QuillEditor() {
 
         setCurrentNoteColor(noteData.color);
         setCurrentNoteTags(noteData.tags?.map(t => t.name) || []);
+        setTitle(noteData.title);
 
         if (cancelled) {
           console.log('[QuillEditor] Connection cancelled after fetch');
@@ -313,7 +396,7 @@ function QuillEditor() {
           provider.setAwarenessField('user', {
             id: user.id,
             name: user.username,
-            color: getRandomColor()
+            color: getCursorColor(user.id)
           });
         }
 
@@ -322,17 +405,21 @@ function QuillEditor() {
         console.log('[QuillEditor] Binding created');
 
         if (containerRef.current) {
-          const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;
-          if (editorDiv) {
-            const bgColor = getNoteColor(noteData.color, isDark);
-            editorDiv.style.backgroundColor = bgColor;
-            console.log('[QuillEditor] Applied color:', bgColor);
-          }
+          containerRef.current.style.backgroundColor = getNoteColor(noteData.color, isDark);
         }
 
         if (!cancelled) {
           providerRef.current = provider;
           bindingRef.current = binding;
+
+          // Document is attached, so typing is safe again
+          quillRef.current!.enable(true);
+          setConnectionStatus(provider.isConnected ? 'connected' : 'offline');
+
+          // Keep the top bar honest for the rest of the session
+          provider.on('status', onProviderStatus);
+          provider.on('disconnect', onProviderDisconnect);
+
           console.log('[QuillEditor] Connection complete');
         } else {
           console.log('[QuillEditor] Connection cancelled, cleaning up');
@@ -343,6 +430,10 @@ function QuillEditor() {
       } catch (error) {
         if (!cancelled) {
           console.error('[QuillEditor] Failed to connect to note:', error);
+          // Editing offline still beats a frozen editor: edits are held in the
+          // Yjs doc and sent when the connection returns
+          quillRef.current?.enable(true);
+          setConnectionStatus('offline');
         }
       }
     }
@@ -352,18 +443,30 @@ function QuillEditor() {
     return () => {
       cancelled = true;
       console.log('[QuillEditor] Effect cleanup - cancelling async operation');
+
+      /*
+       * Previously this only set the flag, so on unmount (logging out, or the
+       * editor being replaced) the socket stayed open and this user lingered in
+       * everyone else's cursor list. Tear the connection down here instead; the
+       * next run re-creates it.
+       */
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+        bindingRef.current = null;
+      }
+      if (providerRef.current) {
+        providerRef.current.off('status', onProviderStatus);
+        providerRef.current.off('disconnect', onProviderDisconnect);
+        providerRef.current.destroy();
+        providerRef.current = null;
+      }
     };
-  }, [selectedNoteId, selectedWorkspaceId, token, user]);
+  }, [selectedNoteId, selectedWorkspaceId, token, user, setConnectionStatus]);
 
   // Update editor background when theme changes
   useEffect(() => {
     if (containerRef.current && selectedNoteId) {
-      const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;
-      if (editorDiv) {
-        const bgColor = getNoteColor(currentNoteColor, isDark);
-        editorDiv.style.backgroundColor = bgColor;
-        console.log('[QuillEditor] Updated background for theme:', isDark ? 'dark' : 'light', bgColor);
-      }
+      containerRef.current.style.backgroundColor = getNoteColor(currentNoteColor, isDark);
     }
   }, [isDark, currentNoteColor, selectedNoteId]);
 
@@ -401,13 +504,50 @@ function QuillEditor() {
     };
   }, [selectedNoteId, selectedWorkspaceId]);
 
-  function getRandomColor() {
-    const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
-      '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
+
+  /*
+   * Saves after a pause rather than on every keystroke. Titles are metadata in
+   * Postgres, not part of the collaborative document, so a title edited by two
+   * people at once is last-write-wins and won't appear live for the other.
+   */
+  function handleTitleChange(newTitle: string) {
+    setTitle(newTitle);
+    if (!selectedNoteId || !selectedWorkspaceId) return;
+
+    const noteId = selectedNoteId;
+    const workspaceId = selectedWorkspaceId;
+    window.clearTimeout(titleSaveRef.current);
+    titleSaveRef.current = window.setTimeout(() => {
+      saveTitle(workspaceId, noteId, newTitle);
+    }, 800);
   }
+
+  async function saveTitle(workspaceId: number, noteId: number, newTitle: string) {
+    const trimmed = newTitle.trim() || 'Untitled';
+    const existing = useWorkspaceStore.getState().getNoteById(noteId);
+    if (existing?.title === trimmed) return;
+
+    try {
+      await updateNote(workspaceId, noteId, { title: trimmed });
+      useWorkspaceStore.getState().updateNote(noteId, { title: trimmed });
+    } catch (error) {
+      console.error('[QuillEditor] Failed to save title:', error);
+      notifyError('Could not save the note title');
+    }
+  }
+
+  function commitTitle() {
+    if (!selectedNoteId || !selectedWorkspaceId) return;
+    window.clearTimeout(titleSaveRef.current);
+    const trimmed = title.trim() || 'Untitled';
+    if (trimmed !== title) setTitle(trimmed);
+    saveTitle(selectedWorkspaceId, selectedNoteId, trimmed);
+  }
+
+  // Don't leave an unsaved title behind when switching notes or unmounting
+  useEffect(() => {
+    return () => window.clearTimeout(titleSaveRef.current);
+  }, []);
 
   async function handleColorChange(newColor: string) {
     if (!selectedNoteId || !selectedWorkspaceId) return;
@@ -421,11 +561,7 @@ function QuillEditor() {
       useWorkspaceStore.getState().updateNote(selectedNoteId, { color: newColor });
       
       if (containerRef.current) {
-        const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement;
-        if (editorDiv) {
-          const bgColor = getNoteColor(newColor, isDark);
-          editorDiv.style.backgroundColor = bgColor;
-        }
+        containerRef.current.style.backgroundColor = getNoteColor(newColor, isDark);
       }
       
       console.log('[QuillEditor] Color updated successfully');
@@ -471,131 +607,88 @@ function QuillEditor() {
       flexDirection: 'column',
       backgroundColor: 'var(--bg-main)'
     }}>
-      {/* Toolbar Container */}
-      <div style={{
-        display: selectedNoteId ? 'flex' : 'none',
-        flexDirection: 'column',
-        backgroundColor: 'var(--bg-main)',
-        flexShrink: 0,
-        borderBottom: `1px solid var(--border-main)`
-      }}>
-        
-        {/* Line 1: Quill Editor Items */}
-        <div style={{
-          padding: '12px 16px',
-          borderBottom: '1px solid #f3f4f6', // Light separator between rows
-        }}>
-          <div style={{
-            overflowX: 'auto',
-            overflowY: 'visible',
-            paddingBottom: '8px',
-            marginBottom: '-8px'
-          }}>
-            <div 
-              id="toolbar-container"
-              style={{
-                display: 'inline-flex'
-              }}
-            />
-          </div>
-        </div>
+      {/* Note header: title, tags, colour, then formatting */}
+      <div
+        className="editor-header"
+        style={{ display: selectedNoteId ? 'block' : 'none' }}
+      >
+        <div className="editor-header-inner">
+          <input
+            className="note-title-input"
+            value={title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            onBlur={commitTitle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.currentTarget.blur();
+                quillRef.current?.focus();
+              }
+            }}
+            placeholder="Untitled"
+            aria-label="Note title"
+          />
 
-        {/* Line 2: Undo/Redo, Tags, Color */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '8px 16px',
-          borderBottom: '1px solid var(--border-main)', // Main border at bottom
-          gap: '16px',
-          backgroundColor: 'var(--bg-main)',
-          position: 'relative',
-          zIndex: 10
-        }}>
-          
-          {/* Undo / Redo Group */}
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button
-              onClick={handleUndo}
-              title="Undo"
-              style={{
-                background: 'transparent',
-                border: '1px solid transparent',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                padding: '4px',
-                color: '#4b5563',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>undo</span>
-            </button>
-            <button
-              onClick={handleRedo}
-              title="Redo"
-              style={{
-                background: 'transparent',
-                border: '1px solid transparent',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                padding: '4px',
-                color: '#4b5563',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>redo</span>
-            </button>
-          </div>
-
-          {/* Separator */}
-          <div style={{
-            width: '1px',
-            height: '24px',
-            backgroundColor: '#e5e7eb',
-            flexShrink: 0
-          }} />
-
-          {/* Tags and Color Picker */}
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            alignItems: 'center',
-            flex: 1,
-            position: 'relative',
-            zIndex: 9999 // Ensures dropdowns appear above other elements
-          }}>
+          <div className="note-meta-row">
             <TagInput
               currentTags={currentNoteTags}
               onTagsChange={handleTagsChange}
             />
-            <ColorPicker 
-              currentColor={currentNoteColor} 
+            <ColorPicker
+              currentColor={currentNoteColor}
               onColorChange={handleColorChange}
               isDark={isDark}
+            />
+            <div className="note-meta-spacer" />
+            <div className="history-buttons">
+              <button className="icon-btn" onClick={handleUndo} title="Undo" aria-label="Undo">
+                <span className="material-symbols-outlined">undo</span>
+              </button>
+              <button className="icon-btn" onClick={handleRedo} title="Redo" aria-label="Redo">
+                <span className="material-symbols-outlined">redo</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="toolbar-row">
+            <div className="toolbar-scroll">
+              <div id="toolbar-container" />
+            </div>
+
+            <button
+              ref={moreButtonRef}
+              className={`icon-btn toolbar-more-btn${moreOpen ? ' is-open' : ''}`}
+              onClick={() => setMoreOpen((open) => !open)}
+              aria-expanded={moreOpen}
+              aria-label="More formatting options"
+              title="More formatting options"
+            >
+              <span className="material-symbols-outlined">more_horiz</span>
+            </button>
+
+            {/* Always in the DOM: Quill's buttons are moved in here at startup
+                and must not be unmounted, so visibility is toggled with CSS */}
+            <div
+              ref={morePanelRef}
+              className={`toolbar-more-panel ql-toolbar ql-snow${moreOpen ? ' is-open' : ''}`}
+              aria-hidden={!moreOpen}
             />
           </div>
         </div>
       </div>
-      
+
       {!selectedNoteId && (
         <div style={{ 
           padding: '48px 32px',
           textAlign: 'center',
-          color: '#9ca3af',
+          color: 'var(--text-tertiary)',
           position: 'absolute',
           width: '100%',
           zIndex: 10
         }}>
           <span className="material-symbols-outlined" style={{ 
             fontSize: '64px',
-            color: '#d1d5db',
+            color: 'var(--text-tertiary)',
             marginBottom: '16px',
             display: 'block'
           }}>
@@ -604,23 +697,42 @@ function QuillEditor() {
           <div style={{ 
             fontSize: '16px',
             fontWeight: 500,
-            color: '#6b7280'
+            color: 'var(--text-secondary)'
           }}>
             Select a note to start editing
           </div>
         </div>
       )}
       
-      <div 
-        ref={containerRef} 
-        style={{ 
+      <div
+        style={{
           flex: 1,
-          overflow: 'auto',
-          visibility: selectedNoteId ? 'visible' : 'hidden',
+          minHeight: 0,
           position: 'relative',
-          zIndex: 1
+          display: 'flex',
+          flexDirection: 'column'
         }}
-      />
+      >
+        <div
+          ref={containerRef}
+          style={{
+            flex: 1,
+            overflow: 'auto',
+            visibility: selectedNoteId ? 'visible' : 'hidden',
+            position: 'relative',
+            zIndex: 1
+          }}
+        />
+
+        {isLoadingNote && (
+          <div className="editor-loading" aria-live="polite">
+            <span className="material-symbols-outlined spin" aria-hidden="true">
+              progress_activity
+            </span>
+            Opening note...
+          </div>
+        )}
+      </div>
       
 {/* Inject styles to fix checklist sizing and remove duplicates */}
       <style>{`
